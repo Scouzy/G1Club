@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Coach, getCoachProfile, getCurrentCoachProfile, updateCoachProfile, updateCoachCategories } from '../../services/coachService';
 import { Category, getCategories } from '../../services/categoryService';
 import { useAuth } from '../../hooks/useAuth';
-import { User, Mail, Phone, MapPin, Award, Book, Edit, Save, X, Layers, Plus } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Award, Book, Edit, Save, X, Layers, Plus, Camera } from 'lucide-react';
 
 const CoachProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,6 +18,30 @@ const CoachProfile: React.FC = () => {
   const [editingCategories, setEditingCategories] = useState(false);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
   const [savingCategories, setSavingCategories] = useState(false);
+
+  // Photo upload
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !coach) return;
+    if (file.size > 3 * 1024 * 1024) { alert('Image trop lourde (max 3 Mo)'); return; }
+    setUploadingPhoto(true);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const photoUrl = reader.result as string;
+        await updateCoachProfile(coach.id, { photoUrl });
+        setCoach(prev => prev ? { ...prev, photoUrl } : prev);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setUploadingPhoto(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   const [formData, setFormData] = useState({
     phone: '',
@@ -129,11 +153,31 @@ const CoachProfile: React.FC = () => {
         <div className="space-y-4">
           <div className="bg-card p-6 rounded-xl shadow-sm border border-border">
             <div className="flex flex-col items-center mb-6">
-              <div className="h-28 w-28 bg-muted rounded-full flex items-center justify-center mb-4 overflow-hidden">
-                {coach.photoUrl ? (
-                  <img src={coach.photoUrl} alt={coach.user.name} className="h-full w-full object-cover" />
-                ) : (
-                  <User size={56} className="text-muted-foreground" />
+              <div className="relative group mb-4">
+                <div className="h-28 w-28 bg-muted rounded-full flex items-center justify-center overflow-hidden border-2 border-border">
+                  {coach.photoUrl ? (
+                    <img src={coach.photoUrl} alt={coach.user.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <User size={56} className="text-muted-foreground" />
+                  )}
+                </div>
+                {canEdit && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => photoInputRef.current?.click()}
+                      disabled={uploadingPhoto}
+                      className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Changer la photo"
+                    >
+                      {uploadingPhoto ? (
+                        <div className="h-6 w-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Camera size={22} className="text-white" />
+                      )}
+                    </button>
+                    <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                  </>
                 )}
               </div>
               <h2 className="text-xl font-bold text-foreground text-center">{coach.user.name}</h2>

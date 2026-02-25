@@ -6,8 +6,8 @@ import { getGlobalStats, getCategoryStats, getSportifStats, GlobalStats, Sportif
 import api from '../lib/axios';
 import { Announcement, getAnnouncements, createAnnouncement, deleteAnnouncement } from '../services/announcementService';
 import ClubBanner from '../components/ClubBanner';
-import { Users, Shield, Award, Activity, Calendar, Trophy, Clock, CheckCircle, Globe, Facebook, Instagram, Twitter, Youtube, Linkedin, Megaphone, Trash2, Plus, X } from 'lucide-react';
-import StatsChart from '../components/StatsChart';
+import { Users, Shield, Award, Activity, Calendar, Trophy, TrendingUp, Globe, Facebook, Instagram, Twitter, Youtube, Linkedin, Megaphone, Trash2, Plus, X, CheckCircle, Clock, ChevronRight } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useRefresh } from '../context/RefreshContext';
 
 const TikTokIcon: React.FC<{ size?: number }> = ({ size = 16 }) => (
@@ -31,15 +31,15 @@ const Dashboard: React.FC = () => {
   const { club } = useClub();
   const { attendanceVersion } = useRefresh();
   const [stats, setStats] = useState<GlobalStats | null>(null);
-  const [sportifStats, setSportifStats] = useState<SportifStats | null>(null);
   const [categoryStats, setCategoryStats] = useState<any[]>([]);
+  const [sportifStats, setSportifStats] = useState<SportifStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [showAnnouncementForm, setShowAnnouncementForm] = useState(false);
   const [annTitle, setAnnTitle] = useState('');
   const [annContent, setAnnContent] = useState('');
   const [annSending, setAnnSending] = useState(false);
-  const [annError, setAnnError] = useState('');
+  const [annError, setAnnError] = useState<string>('');
   const [allClubsStats, setAllClubsStats] = useState<any[]>([]);
   const activeClubId = localStorage.getItem('activeClubId');
   const isGlobalView = isSuperAdmin && !activeClubId;
@@ -50,7 +50,7 @@ const Dashboard: React.FC = () => {
     } else if (user?.role === 'ADMIN' || user?.role === 'COACH') {
       loadStats();
     } else if (user?.role === 'SPORTIF') {
-      loadSportifStats();
+      loadSportifData();
     } else {
       setLoading(false);
     }
@@ -106,6 +106,17 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const loadSportifData = async () => {
+    try {
+      const data = await getSportifStats();
+      setSportifStats(data);
+    } catch (error) {
+      console.error('Error loading sportif stats', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const loadStats = async () => {
     try {
       const [globalData, catData] = await Promise.all([
@@ -120,17 +131,6 @@ const Dashboard: React.FC = () => {
       setLoading(false);
     }
   };
-
-  const loadSportifStats = async () => {
-      try {
-          const data = await getSportifStats();
-          setSportifStats(data);
-      } catch (error) {
-          console.error('Error loading sportif stats', error);
-      } finally {
-          setLoading(false);
-      }
-  }
 
   if (loading) {
     return (
@@ -336,134 +336,176 @@ const Dashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Sportif Dashboard Section */}
+        {/* ── Graphique activité mensuelle + Stats par catégorie ── */}
+        {(user?.role === 'ADMIN' || user?.role === 'COACH') && stats && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Activité mensuelle */}
+            <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
+              <h3 className="text-base font-semibold mb-4 flex items-center gap-2 text-foreground">
+                <TrendingUp className="h-5 w-5 text-primary" /> Activité mensuelle (6 mois)
+              </h3>
+              {stats.activityData && stats.activityData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={stats.activityData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                    <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'currentColor' }} />
+                    <YAxis tick={{ fontSize: 11, fill: 'currentColor' }} allowDecimals={false} />
+                    <Tooltip
+                      contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
+                      labelStyle={{ fontWeight: 600 }}
+                    />
+                    <Bar dataKey="count" name="Événements" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-10">Aucune activité enregistrée.</p>
+              )}
+            </div>
+
+            {/* Sportifs par catégorie */}
+            <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
+              <h3 className="text-base font-semibold mb-4 flex items-center gap-2 text-foreground">
+                <Users className="h-5 w-5 text-primary" /> Sportifs par catégorie
+              </h3>
+              {categoryStats.length > 0 ? (
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={categoryStats} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                    <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'currentColor' }} />
+                    <YAxis tick={{ fontSize: 11, fill: 'currentColor' }} allowDecimals={false} />
+                    <Tooltip
+                      contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
+                    />
+                    <Bar dataKey="sportifs" name="Sportifs" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="trainings" name="Événements" fill="#10b981" radius={[4, 4, 0, 0]} />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-10">Aucune catégorie créée.</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── Vue SPORTIF ── */}
         {user?.role === 'SPORTIF' && sportifStats && (
-             <div className="space-y-6">
-                 {/* Sportif KPI Cards */}
-                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div className="bg-card p-6 rounded-lg shadow-sm border border-border flex items-center">
-                        <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900 mr-4">
-                            <Activity className="h-6 w-6 text-blue-600 dark:text-blue-300" />
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium text-muted-foreground">Présence (30j)</p>
-                            <p className="text-2xl font-bold text-foreground">{sportifStats.attendance.recent}%</p>
-                        </div>
-                    </div>
-                    <div className="bg-card p-6 rounded-lg shadow-sm border border-border flex items-center">
-                        <div className="p-3 rounded-full bg-green-100 dark:bg-green-900 mr-4">
-                            <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-300" />
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium text-muted-foreground">Séances</p>
-                            <p className="text-2xl font-bold text-foreground">{sportifStats.attendance.presentSessions} / {sportifStats.attendance.totalSessions}</p>
-                        </div>
-                    </div>
-                    <div className="bg-card p-6 rounded-lg shadow-sm border border-border flex items-center">
-                        <div className="p-3 rounded-full bg-yellow-100 dark:bg-yellow-900 mr-4">
-                            <Trophy className="h-6 w-6 text-yellow-600 dark:text-yellow-300" />
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium text-muted-foreground">Matchs</p>
-                            <p className="text-2xl font-bold text-foreground">{sportifStats.matchParticipations}</p>
-                        </div>
-                    </div>
-                    <div className="bg-card p-6 rounded-lg shadow-sm border border-border flex items-center">
-                        <div className="p-3 rounded-full bg-purple-100 dark:bg-purple-900 mr-4">
-                            <Award className="h-6 w-6 text-purple-600 dark:text-purple-300" />
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium text-muted-foreground">Évaluations</p>
-                            <p className="text-2xl font-bold text-foreground">{sportifStats.recentEvaluations.length}</p>
-                        </div>
-                    </div>
+          <div className="space-y-6">
+            {/* Catégorie */}
+            {sportifStats.sportif?.category && (
+              <div className="flex items-center gap-3 bg-primary/5 border border-primary/15 rounded-xl px-5 py-3">
+                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <Award size={18} className="text-primary" />
                 </div>
-
-                {/* Performance Chart */}
-                {sportifStats.recentEvaluations.length > 0 && (
-                     <div className="bg-card p-6 rounded-lg shadow border border-border">
-                        <h2 className="text-xl font-semibold mb-4 text-card-foreground">Évolution de mes performances</h2>
-                        <div style={{ width: '100%', height: 300 }}>
-                            <StatsChart 
-                                type="performance" 
-                                data={sportifStats.recentEvaluations.map((e: any) => {
-                                    let avg = 0;
-                                    try {
-                                        const ratings = JSON.parse(e.ratings);
-                                        const values = Object.values(ratings).map((v: any) => Number(v));
-                                        if (values.length > 0) {
-                                            avg = values.reduce((a, b) => a + b, 0) / values.length;
-                                        }
-                                    } catch (err) { avg = 0; }
-                                    return {
-                                        date: new Date(e.date).toLocaleDateString('fr-FR'),
-                                        rating: parseFloat(avg.toFixed(1))
-                                    };
-                                }).reverse()} 
-                            />
-                        </div>
-                    </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Next Trainings */}
-                    <div className="bg-card p-6 rounded-lg shadow border border-border">
-                        <h3 className="text-xl font-semibold mb-4 text-card-foreground flex items-center gap-2">
-                             <Calendar className="h-5 w-5 text-primary"/> Prochains Événements
-                        </h3>
-                        <div className="space-y-3">
-                            {sportifStats.nextTrainings && sportifStats.nextTrainings.length > 0 ? (
-                                sportifStats.nextTrainings.map((t: any) => (
-                                    <div key={t.id} className="flex items-center gap-3 border-b border-border pb-3 last:border-0 last:pb-0">
-                                        <div className="bg-muted p-2 rounded-md text-center min-w-[44px] shrink-0">
-                                            <div className="font-bold text-base leading-none">{new Date(t.date).getDate()}</div>
-                                            <div className="text-xs uppercase text-muted-foreground">{new Date(t.date).toLocaleDateString('fr-FR', {month: 'short'})}</div>
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="font-medium text-foreground text-sm">{t.type}</div>
-                                            <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-2">
-                                                <span className="flex items-center gap-1"><Clock size={11} /> {new Date(t.date).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</span>
-                                                {t.location && <span>📍 {t.location}</span>}
-                                                {t.opponent && <span>🆚 {t.opponent}</span>}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <p className="text-muted-foreground text-center py-6">Aucun événement à venir.</p>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Recent Evaluations */}
-                    <div className="bg-card p-6 rounded-lg shadow border border-border">
-                        <h3 className="text-xl font-semibold mb-4 text-card-foreground flex items-center gap-2">
-                            <Award className="h-5 w-5 text-primary"/> Dernières Évaluations
-                        </h3>
-                         <div className="space-y-4">
-                            {sportifStats.recentEvaluations && sportifStats.recentEvaluations.length > 0 ? (
-                                sportifStats.recentEvaluations.map((e: any) => (
-                                    <div key={e.id} className="border-b border-border pb-4 last:border-0 last:pb-0">
-                                        <div className="flex justify-between mb-2">
-                                            <span className="font-medium text-foreground">{e.type}</span>
-                                            <span className="text-sm text-muted-foreground">{new Date(e.date).toLocaleDateString('fr-FR')}</span>
-                                        </div>
-                                        {e.comment && <p className="text-sm text-muted-foreground italic">"{e.comment}"</p>}
-                                        <div className="mt-2 flex gap-2">
-                                            {/* We could parse JSON ratings here if complex, assuming basic rendering */}
-                                            <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                                                Par {e.coach?.user?.name || 'Coach'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <p className="text-muted-foreground text-center py-4">Aucune évaluation récente.</p>
-                            )}
-                        </div>
-                    </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Votre catégorie</p>
+                  <p className="font-semibold text-foreground">{sportifStats.sportif.category.name}</p>
                 </div>
-             </div>
+              </div>
+            )}
+
+            {/* KPI Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-card p-5 rounded-xl border border-border flex items-center gap-3 shadow-sm">
+                <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center shrink-0">
+                  <Activity size={18} className="text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Présence (30j)</p>
+                  <p className="text-2xl font-bold text-foreground">{sportifStats.attendance.recent}%</p>
+                </div>
+              </div>
+              <div className="bg-card p-5 rounded-xl border border-border flex items-center gap-3 shadow-sm">
+                <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center shrink-0">
+                  <CheckCircle size={18} className="text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Séances</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {sportifStats.attendance.presentSessions}
+                    <span className="text-sm font-normal text-muted-foreground">/{sportifStats.attendance.totalSessions}</span>
+                  </p>
+                </div>
+              </div>
+              <div className="bg-card p-5 rounded-xl border border-border flex items-center gap-3 shadow-sm">
+                <div className="h-10 w-10 rounded-full bg-yellow-100 dark:bg-yellow-900/40 flex items-center justify-center shrink-0">
+                  <Trophy size={18} className="text-yellow-600 dark:text-yellow-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Matchs joués</p>
+                  <p className="text-2xl font-bold text-foreground">{sportifStats.matchParticipations}</p>
+                </div>
+              </div>
+              <div className="bg-card p-5 rounded-xl border border-border flex items-center gap-3 shadow-sm">
+                <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center shrink-0">
+                  <Award size={18} className="text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Évaluations</p>
+                  <p className="text-2xl font-bold text-foreground">{sportifStats.recentEvaluations.length}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Prochains événements + taux présence global */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Prochains événements */}
+              <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <Calendar size={16} className="text-primary" /> Prochains événements
+                  </h3>
+                  <Link to="/sportif/events" className="text-xs text-primary hover:underline flex items-center gap-0.5">
+                    Voir tout <ChevronRight size={13} />
+                  </Link>
+                </div>
+                <div className="divide-y divide-border">
+                  {sportifStats.nextTrainings.length > 0 ? sportifStats.nextTrainings.map((t: any) => (
+                    <div key={t.id} className="flex items-center gap-3 px-5 py-3">
+                      <div className="bg-muted rounded-md p-1.5 text-center min-w-[38px] shrink-0">
+                        <div className="font-bold text-xs leading-none">{new Date(t.date).getDate()}</div>
+                        <div className="text-[10px] uppercase text-muted-foreground">{new Date(t.date).toLocaleDateString('fr-FR', { month: 'short' })}</div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground">{t.type}</p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock size={10} />
+                          {new Date(t.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                          {t.location && <span> · 📍 {t.location}</span>}
+                          {t.opponent && <span> · 🆚 {t.opponent}</span>}
+                        </p>
+                      </div>
+                    </div>
+                  )) : (
+                    <p className="px-5 py-6 text-sm text-muted-foreground text-center">Aucun événement à venir.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Taux de présence global */}
+              <div className="bg-card rounded-xl border border-border shadow-sm p-5 flex flex-col justify-center items-center gap-3">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 self-start">
+                  <Activity size={16} className="text-primary" /> Assiduité globale
+                </h3>
+                <div className="flex flex-col items-center gap-1 py-4">
+                  <span className="text-6xl font-bold text-primary">{sportifStats.attendance.global}%</span>
+                  <p className="text-xs text-muted-foreground text-center">
+                    {sportifStats.attendance.presentSessions} présences sur {sportifStats.attendance.totalSessions} séances
+                  </p>
+                </div>
+                {/* Barre de progression */}
+                <div className="w-full bg-muted rounded-full h-2.5">
+                  <div
+                    className="bg-primary h-2.5 rounded-full transition-all"
+                    style={{ width: `${sportifStats.attendance.global}%` }}
+                  />
+                </div>
+                <Link to="/sportif" className="mt-2 text-xs text-primary hover:underline flex items-center gap-1">
+                  Voir mon tableau de bord complet <ChevronRight size={13} />
+                </Link>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* ── Modal Nouvelle Annonce ── */}
@@ -611,58 +653,6 @@ const Dashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Role Specific Actions & Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {user?.role === 'ADMIN' && (
-            <div className="bg-card p-6 rounded-lg shadow border border-border">
-              <h2 className="text-xl font-semibold mb-4 text-card-foreground">Contrôles Dirigeant</h2>
-              <p className="mb-4 text-muted-foreground">Gérer les utilisateurs, catégories et paramètres du système.</p>
-              <div className="flex gap-4">
-                <Link to="/admin/users" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-primary-foreground bg-primary hover:bg-primary/90">
-                  Gérer Utilisateurs
-                </Link>
-                 <a href="/admin" className="inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-secondary-foreground bg-secondary hover:bg-secondary/80">
-                  Panneau AdminJS
-                </a>
-              </div>
-            </div>
-          )}
-          {user?.role === 'COACH' && (
-            <div className="bg-card p-6 rounded-lg shadow border border-border">
-              <h2 className="text-xl font-semibold mb-4 text-card-foreground">Espace Coach</h2>
-              <p className="mb-4 text-muted-foreground">Gérer vos sportifs, entraînements et annotations.</p>
-              <div className="flex gap-4">
-                <Link to="/coach/sportifs" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-primary-foreground bg-primary hover:bg-primary/90">Mes Sportifs</Link>
-                <Link to="/coach/trainings" className="inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-secondary-foreground bg-secondary hover:bg-secondary/80">Planifier un entraînement</Link>
-              </div>
-            </div>
-          )}
-          
-          {/* Charts for Admin/Coach */}
-          {(user?.role === 'ADMIN' || user?.role === 'COACH') && (
-            <div className="space-y-6">
-                {categoryStats.length > 0 && (
-                    <div className="bg-card p-6 rounded-lg shadow border border-border">
-                    <h2 className="text-xl font-semibold mb-4 text-card-foreground">Distribution des Sportifs</h2>
-                    <div style={{ width: '100%', height: 250 }}>
-                        <StatsChart type="attendance" data={categoryStats.map(c => ({ month: c.name, present: c.sportifs, absent: 0 }))} />
-                        <p className="text-center text-sm text-muted-foreground mt-2">Sportifs par Catégorie</p>
-                    </div>
-                    </div>
-                )}
-
-                {stats?.activityData && (
-                    <div className="bg-card p-6 rounded-lg shadow border border-border">
-                        <h2 className="text-xl font-semibold mb-4 text-card-foreground">Activité du Club (6 mois)</h2>
-                        <div style={{ width: '100%', height: 250 }}>
-                            <StatsChart type="activity" data={stats.activityData} />
-                            <p className="text-center text-sm text-muted-foreground mt-2">Nombre d'entraînements par mois</p>
-                        </div>
-                    </div>
-                )}
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );

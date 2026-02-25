@@ -69,8 +69,14 @@ export const getMyself = async (req: any, res: Response) => {
             where: { userId },
             include: {
                 category: true,
-                annotations: true, // Maybe filter visibility?
-                evaluations: true,
+                annotations: true, 
+                evaluations: {
+                  include: {
+                    coach: { include: { user: { select: { name: true } } } },
+                    training: { select: { id: true, date: true, type: true, opponent: true, result: true } }
+                  },
+                  orderBy: { date: 'desc' }
+                },
                 attendances: {
                     include: { training: true },
                     take: 20,
@@ -132,11 +138,33 @@ export const createSportif = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// Update own photo — SPORTIF role only
+export const updateMyPhoto = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const { photoUrl } = req.body;
+    if (!userId) return res.status(401).json({ message: 'Non autorisé' });
+
+    const sportif = await prisma.sportif.findUnique({ where: { userId } });
+    if (!sportif) return res.status(404).json({ message: 'Profil sportif non trouvé' });
+
+    const updated = await prisma.sportif.update({
+      where: { id: sportif.id },
+      data: { photoUrl: photoUrl ?? null }
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+};
+
 // Update Sportif — scoped to club
 export const updateSportif = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { firstName, lastName, birthDate, height, weight, position, categoryId } = req.body;
+    const { firstName, lastName, birthDate, height, weight, position, categoryId, photoUrl } = req.body;
     const clubId = req.user?.clubId;
 
     // Verify sportif belongs to club
@@ -154,7 +182,8 @@ export const updateSportif = async (req: AuthRequest, res: Response) => {
         height: height ? parseFloat(height) : undefined,
         weight: weight ? parseFloat(weight) : undefined,
         position,
-        categoryId
+        categoryId,
+        ...(photoUrl !== undefined && { photoUrl })
       }
     });
 

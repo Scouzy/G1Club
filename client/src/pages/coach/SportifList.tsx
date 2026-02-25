@@ -335,8 +335,12 @@ const SportifList: React.FC = () => {
                 <div key={sportif.id} className="bg-card rounded-xl shadow-sm border border-border hover:shadow-md hover:border-primary/40 transition-all">
                   <div className="p-5">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="h-11 w-11 bg-primary/10 rounded-full flex items-center justify-center">
-                        <User className="h-5 w-5 text-primary" />
+                      <div className="h-11 w-11 rounded-full overflow-hidden border border-border bg-primary/10 flex items-center justify-center shrink-0">
+                        {sportif.photoUrl ? (
+                          <img src={sportif.photoUrl} alt={`${sportif.firstName} ${sportif.lastName}`} className="h-full w-full object-cover" />
+                        ) : (
+                          <User className="h-5 w-5 text-primary" />
+                        )}
                       </div>
                       <div>
                         <h3 className="font-semibold text-foreground">

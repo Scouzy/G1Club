@@ -100,6 +100,7 @@ model Sportif {
   height    Float? // in cm
   weight    Float? // in kg
   position  String?
+  photoUrl  String?
   
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id])
@@ -164,6 +165,7 @@ model Training {
 
   // Relations
   attendances Attendance[]
+  evaluations Evaluation[]
 }
 
 model Attendance {
@@ -194,7 +196,7 @@ model Annotation {
 model Evaluation {
   id        String   @id @default(uuid())
   date      DateTime @default(now())
-  type      String   // TECHNIQUE, PHYSIQUE, TACTIQUE, MENTAL
+  type      String   // TECHNIQUE, PHYSIQUE, TACTIQUE, MENTAL, GLOBAL
   ratings   String   // JSON string storing key-value pairs
   comment   String?
   
@@ -203,6 +205,9 @@ model Evaluation {
   
   coachId   String
   coach     Coach    @relation(fields: [coachId], references: [id])
+
+  trainingId String?
+  training   Training? @relation(fields: [trainingId], references: [id])
 }
 
 model ClubAnnouncement {

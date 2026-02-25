@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import api from '../../lib/axios';
 import { useRefresh } from '../../context/RefreshContext';
 import { getCategoryMessages, Message } from '../../services/messageService';
@@ -10,7 +10,7 @@ import {
 } from 'recharts';
 import {
   User, TrendingUp, Calendar, CheckCircle, XCircle, Star,
-  Activity, Target, Dumbbell, Brain, Zap, Shield, MessageSquare, Trophy, Clock
+  Activity, Target, Dumbbell, Brain, Zap, Shield, MessageSquare, Trophy, Clock, Camera
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -63,6 +63,34 @@ const EVAL_TYPE_LABELS: Record<string, string> = {
   PHYSIQUE: 'Physique',
   TACTIQUE: 'Tactique',
   MENTAL: 'Mental',
+  GLOBAL: 'Évaluation globale',
+};
+
+const CRITERIA_LABELS: Record<string, string> = {
+  technique: 'Technique',
+  endurance: 'Endurance',
+  vitesse: 'Vitesse',
+  mental: 'Mental',
+};
+
+const CRITERIA_COLORS: Record<string, string> = {
+  technique: '#3b82f6',
+  endurance: '#22c55e',
+  vitesse: '#f97316',
+  mental: '#a855f7',
+};
+
+const safeParseRatings = (raw: string): Record<string, number> => {
+  try {
+    let parsed = JSON.parse(raw);
+    if (typeof parsed === 'string') parsed = JSON.parse(parsed);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return Object.fromEntries(
+        Object.entries(parsed).filter(([, v]) => typeof v === 'number')
+      ) as Record<string, number>;
+    }
+  } catch {}
+  return {};
 };
 
 const EVAL_TYPE_ICONS: Record<string, React.ElementType> = {
@@ -70,6 +98,7 @@ const EVAL_TYPE_ICONS: Record<string, React.ElementType> = {
   PHYSIQUE: Activity,
   TACTIQUE: Target,
   MENTAL: Brain,
+  GLOBAL: Star,
 };
 
 const EVAL_TYPE_COLORS: Record<string, string> = {
@@ -77,6 +106,7 @@ const EVAL_TYPE_COLORS: Record<string, string> = {
   PHYSIQUE: '#10b981',
   TACTIQUE: '#f59e0b',
   MENTAL: '#8b5cf6',
+  GLOBAL: '#6366f1',
 };
 
 const ANNOTATION_COLORS: Record<string, string> = {
@@ -101,6 +131,28 @@ const SportifDashboard: React.FC = () => {
   const [categoryMessages, setCategoryMessages] = useState<Message[]>([]);
   const [recentMatches, setRecentMatches] = useState<Training[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<Training[]>([]);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile) return;
+    if (file.size > 3 * 1024 * 1024) { alert('Image trop lourde (max 3 Mo)'); return; }
+    setUploadingPhoto(true);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const photoUrl = reader.result as string;
+        await api.put('/sportifs/me/photo', { photoUrl });
+        setProfile(prev => prev ? { ...prev, photoUrl } as any : prev);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setUploadingPhoto(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   useEffect(() => {
     api.get('/sportifs/me')
@@ -139,22 +191,37 @@ const SportifDashboard: React.FC = () => {
     return acc;
   }, {} as Record<string, Evaluation>);
 
-  // Radar data from latest evals
-  const radarData = Object.entries(latestEvalByType).map(([type, ev]) => {
-    const ratings = JSON.parse(ev.ratings) as Record<string, number>;
-    const avg = Object.values(ratings).length > 0
-      ? Math.round(Object.values(ratings).reduce((a, b) => a + b, 0) / Object.values(ratings).length)
-      : 0;
-    return { subject: EVAL_TYPE_LABELS[type] ?? type, value: avg, fullMark: 10 };
-  });
+  // Radar data: for GLOBAL evals use individual criteria, for typed evals use avg
+  const radarData = (() => {
+    // Prefer GLOBAL evaluations for radar (use latest GLOBAL)
+    const globalEval = (profile?.evaluations ?? [])
+      .filter(e => e.type === 'GLOBAL')
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+    if (globalEval) {
+      const r = safeParseRatings(globalEval.ratings);
+      return Object.entries(r).map(([k, v]) => ({
+        subject: CRITERIA_LABELS[k] ?? k,
+        value: v,
+        fullMark: 10,
+      }));
+    }
+    // Fallback: typed evals
+    return Object.entries(latestEvalByType).map(([type, ev]) => {
+      const ratings = safeParseRatings(ev.ratings);
+      const vals = Object.values(ratings);
+      const avg = vals.length > 0 ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
+      return { subject: EVAL_TYPE_LABELS[type] ?? type, value: avg, fullMark: 10 };
+    });
+  })();
 
   // Evolution chart: average score per evaluation over time
   const evolutionData = [...(profile?.evaluations ?? [])]
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .map(ev => {
-      const ratings = JSON.parse(ev.ratings) as Record<string, number>;
-      const avg = Object.values(ratings).length > 0
-        ? parseFloat((Object.values(ratings).reduce((a, b) => a + b, 0) / Object.values(ratings).length).toFixed(1))
+      const ratings = safeParseRatings(ev.ratings);
+      const vals = Object.values(ratings);
+      const avg = vals.length > 0
+        ? parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1))
         : 0;
       return {
         date: format(parseISO(ev.date), 'dd/MM', { locale: fr }),
@@ -203,11 +270,31 @@ const SportifDashboard: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-        <div
-          className="h-14 w-14 rounded-2xl flex items-center justify-center shrink-0"
-          style={{ backgroundColor: ((profile.category as any).color || '#3b82f6') + '22', color: (profile.category as any).color || '#3b82f6' }}
-        >
-          <User size={26} />
+        <div className="relative group shrink-0">
+          <div
+            className="h-16 w-16 rounded-2xl overflow-hidden flex items-center justify-center border border-border"
+            style={{ backgroundColor: ((profile.category as any).color || '#3b82f6') + '22', color: (profile.category as any).color || '#3b82f6' }}
+          >
+            {(profile as any).photoUrl ? (
+              <img src={(profile as any).photoUrl} alt={`${profile.firstName} ${profile.lastName}`} className="h-full w-full object-cover" />
+            ) : (
+              <User size={26} />
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => photoInputRef.current?.click()}
+            disabled={uploadingPhoto}
+            className="absolute inset-0 rounded-2xl bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            title="Changer ma photo"
+          >
+            {uploadingPhoto ? (
+              <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Camera size={18} className="text-white" />
+            )}
+          </button>
+          <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-foreground">{profile.firstName} {profile.lastName}</h1>
@@ -426,9 +513,10 @@ const SportifDashboard: React.FC = () => {
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {Object.entries(latestEvalByType).map(([type, ev]) => {
-                  const ratings = JSON.parse(ev.ratings) as Record<string, number>;
-                  const avg = Object.values(ratings).length > 0
-                    ? (Object.values(ratings).reduce((a, b) => a + b, 0) / Object.values(ratings).length).toFixed(1)
+                  const ratings = safeParseRatings(ev.ratings);
+                  const vals = Object.values(ratings);
+                  const avg = vals.length > 0
+                    ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1)
                     : '—';
                   const Icon = EVAL_TYPE_ICONS[type] ?? Star;
                   const color = EVAL_TYPE_COLORS[type] ?? '#3b82f6';
@@ -463,13 +551,19 @@ const SportifDashboard: React.FC = () => {
             [...profile.evaluations]
               .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
               .map(ev => {
-                const ratings = JSON.parse(ev.ratings) as Record<string, number>;
-                const avg = Object.values(ratings).length > 0
-                  ? (Object.values(ratings).reduce((a, b) => a + b, 0) / Object.values(ratings).length).toFixed(1)
+                const ratings = safeParseRatings(ev.ratings);
+                const vals = Object.values(ratings);
+                const avg = vals.length > 0
+                  ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1)
                   : '—';
                 const Icon = EVAL_TYPE_ICONS[ev.type] ?? Star;
-                const color = EVAL_TYPE_COLORS[ev.type] ?? '#3b82f6';
-                const chartData = Object.entries(ratings).map(([k, v]) => ({ name: k, score: v }));
+                const color = EVAL_TYPE_COLORS[ev.type] ?? '#6366f1';
+                const isGlobal = ev.type === 'GLOBAL';
+                const chartData = Object.entries(ratings).map(([k, v]) => ({
+                  name: CRITERIA_LABELS[k] ?? k,
+                  score: v,
+                  fill: CRITERIA_COLORS[k] ?? color,
+                }));
                 return (
                   <div key={ev.id} className="bg-card border border-border rounded-xl p-6">
                     <div className="flex items-start justify-between mb-4">
@@ -478,7 +572,14 @@ const SportifDashboard: React.FC = () => {
                           <Icon size={18} style={{ color }} />
                         </div>
                         <div>
-                          <p className="font-semibold text-foreground">{EVAL_TYPE_LABELS[ev.type] ?? ev.type}</p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-semibold text-foreground">{isGlobal ? 'Évaluation globale' : (EVAL_TYPE_LABELS[ev.type] ?? ev.type)}</p>
+                            {(ev as any).training && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                                {(ev as any).training.type}{(ev as any).training.opponent ? ` · vs ${(ev as any).training.opponent}` : ''}
+                              </span>
+                            )}
+                          </div>
                           <p className="text-xs text-muted-foreground">
                             {format(parseISO(ev.date), 'dd MMMM yyyy', { locale: fr })} · par {ev.coach.user.name}
                           </p>
@@ -490,7 +591,22 @@ const SportifDashboard: React.FC = () => {
                       </div>
                     </div>
 
-                    {chartData.length > 0 && (
+                    {chartData.length > 0 && isGlobal && (
+                      <div className="space-y-2 mt-2">
+                        {chartData.map(({ name, score, fill }) => (
+                          <div key={name}>
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-xs font-medium text-foreground">{name}</span>
+                              <span className="text-xs font-bold text-foreground">{score}<span className="text-muted-foreground font-normal">/10</span></span>
+                            </div>
+                            <div className="h-2 bg-muted rounded-full overflow-hidden">
+                              <div className="h-full rounded-full transition-all" style={{ width: `${(score / 10) * 100}%`, backgroundColor: fill }} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {chartData.length > 0 && !isGlobal && (
                       <ResponsiveContainer width="100%" height={120}>
                         <BarChart data={chartData} layout="vertical">
                           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />

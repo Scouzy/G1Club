@@ -9,6 +9,7 @@ export interface Sportif {
   height?: number;
   weight?: number;
   position?: string;
+  photoUrl?: string;
   categoryId: string;
   category?: Category;
   userId?: string;

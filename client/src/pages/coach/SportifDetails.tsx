@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sportif, getSportifById } from '../../services/sportifService';
 import { Annotation, getAnnotations, createAnnotation, deleteAnnotation } from '../../services/annotationService';
-import { Evaluation, getEvaluations, createEvaluation, deleteEvaluation } from '../../services/evaluationService';
+import { Evaluation, getEvaluations, createEvaluation, updateEvaluation, deleteEvaluation } from '../../services/evaluationService';
 import { Team, getTeamsByCategory, assignSportifToTeam } from '../../services/teamService';
-import { User, Calendar, Ruler, Weight, Plus, Trash2, CheckCircle, XCircle, Save, TrendingUp, Shield } from 'lucide-react';
+import { User, Calendar, Ruler, Weight, Plus, Trash2, CheckCircle, XCircle, Save, TrendingUp, Shield, Camera, Edit2 } from 'lucide-react';
 import api from '../../lib/axios';
 import { useRefresh } from '../../context/RefreshContext';
 import { useCoachCategories } from '../../hooks/useCoachCategories';
+import { useAuth } from '../../hooks/useAuth';
 
 interface AttendanceEntry {
   id: string;
@@ -35,6 +36,7 @@ const SportifDetails: React.FC = () => {
   const navigate = useNavigate();
   const { invalidateAttendance } = useRefresh();
   const { canEdit } = useCoachCategories();
+  const { user } = useAuth();
 
   const [sportif, setSportif] = useState<Sportif | null>(null);
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
@@ -59,9 +61,38 @@ const SportifDetails: React.FC = () => {
   const [isSubmittingAnnotation, setIsSubmittingAnnotation] = useState(false);
 
   // Evaluation Form
-  const [newEvaluation, setNewEvaluation] = useState({ type: 'TECHNIQUE', comment: '', ratings: '{}' });
+  const defaultScores = { technique: 5, endurance: 5, vitesse: 5, mental: 5 };
+  const [evalComment, setEvalComment] = useState('');
+  const [evalScores, setEvalScores] = useState({ ...defaultScores });
+  const [evalTrainingId, setEvalTrainingId] = useState<string>('');
+  const [sportifEvents, setSportifEvents] = useState<{ id: string; date: string; type: string; opponent?: string | null }[]>([]);
   const [isEvaluationModalOpen, setIsEvaluationModalOpen] = useState(false);
   const [isSubmittingEvaluation, setIsSubmittingEvaluation] = useState(false);
+  const [editingEvaluation, setEditingEvaluation] = useState<Evaluation | null>(null);
+
+  // Photo upload
+  const photoInputRef = React.useRef<HTMLInputElement>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !id) return;
+    if (file.size > 3 * 1024 * 1024) { alert('Image trop lourde (max 3 Mo)'); return; }
+    setUploadingPhoto(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const photoUrl = reader.result as string;
+        await api.put(`/sportifs/${id}`, { photoUrl });
+        setSportif(prev => prev ? { ...prev, photoUrl } : prev);
+        setUploadingPhoto(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error(err);
+      setUploadingPhoto(false);
+    }
+  };
 
   useEffect(() => {
     if (id) loadData(id);
@@ -82,13 +113,19 @@ const SportifDetails: React.FC = () => {
       const init: Record<string, { present: boolean; reason?: string }> = {};
       raw.forEach(a => { init[a.id] = { present: a.present, reason: a.reason }; });
       setEditedAttendances(init);
-      // Load teams for this sportif's category
+      // Load teams and events for this sportif's category
       const catId = sportifData.categoryId;
       if (catId) {
         const teamsData = await getTeamsByCategory(catId);
         setTeams(teamsData);
         const assignedTeam = teamsData.find(t => t.sportifs.some(s => s.id === sportifId));
         setCurrentTeamId(assignedTeam?.id ?? null);
+        // Load Match/Tournoi events for the evaluation form
+        try {
+          const eventsRes = await api.get('/trainings', { params: { categoryId: catId } });
+          const events = (eventsRes.data as any[]).filter(t => t.type === 'Match' || t.type === 'Tournoi');
+          setSportifEvents(events.map(t => ({ id: t.id, date: t.date, type: t.type, opponent: t.opponent })));
+        } catch {}
       }
     } catch (error) {
       console.error('Error loading sportif details', error);
@@ -176,30 +213,43 @@ const SportifDetails: React.FC = () => {
     }
   };
 
-  const handleAddEvaluation = async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!id) return;
-      if (isSubmittingEvaluation) return;
+  const openEditEvaluation = (evaluation: Evaluation) => {
+    let scores = { ...defaultScores };
+    try {
+      const parsed = JSON.parse(evaluation.ratings);
+      if (parsed && typeof parsed === 'object') scores = { ...defaultScores, ...parsed };
+    } catch {}
+    setEvalScores(scores);
+    setEvalComment(evaluation.comment || '');
+    setEvalTrainingId(evaluation.trainingId || '');
+    setEditingEvaluation(evaluation);
+    setIsEvaluationModalOpen(true);
+  };
 
-      setIsSubmittingEvaluation(true);
-      try {
-          await createEvaluation({
-              type: newEvaluation.type as any,
-              comment: newEvaluation.comment,
-              ratings: newEvaluation.ratings, // Should be valid JSON string
-              sportifId: id
-          });
-          setNewEvaluation({ type: 'TECHNIQUE', comment: '', ratings: '{}' });
-          setIsEvaluationModalOpen(false);
-          const updatedEvaluations = await getEvaluations(id);
-          setEvaluations(updatedEvaluations);
-      } catch (error) {
-          console.error('Error adding evaluation', error);
-          alert('Échec de l\'ajout de l\'évaluation. Assurez-vous que les notes sont en JSON valide.');
-      } finally {
-          setIsSubmittingEvaluation(false);
+  const handleSaveEvaluation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id || isSubmittingEvaluation) return;
+    setIsSubmittingEvaluation(true);
+    try {
+      const trainingIdPayload = evalTrainingId || null;
+      if (editingEvaluation) {
+        await updateEvaluation(editingEvaluation.id, { ratings: evalScores, comment: evalComment, trainingId: trainingIdPayload });
+      } else {
+        await createEvaluation({ type: 'GLOBAL' as any, comment: evalComment, ratings: evalScores as any, sportifId: id, trainingId: trainingIdPayload } as any);
       }
-  }
+      setEvalScores({ ...defaultScores });
+      setEvalComment('');
+      setEvalTrainingId('');
+      setEditingEvaluation(null);
+      setIsEvaluationModalOpen(false);
+      setEvaluations(await getEvaluations(id));
+    } catch (err) {
+      console.error(err);
+      alert('Échec de l\'enregistrement.');
+    } finally {
+      setIsSubmittingEvaluation(false);
+    }
+  };
 
   const handleDeleteEvaluation = async (evaluationId: string) => {
       if (window.confirm('Supprimer cette évaluation ?')) {
@@ -238,8 +288,33 @@ const SportifDetails: React.FC = () => {
       {/* Header / Profile Card */}
       <div className="bg-card rounded-xl shadow-sm border border-border p-6">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-          <div className="h-20 w-20 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
-            <User className="h-10 w-10 text-muted-foreground" />
+          {/* Avatar with optional photo upload */}
+          <div className="relative flex-shrink-0 group">
+            <div className="h-20 w-20 rounded-full overflow-hidden border-2 border-border bg-muted flex items-center justify-center">
+              {sportif.photoUrl ? (
+                <img src={sportif.photoUrl} alt={`${sportif.firstName} ${sportif.lastName}`} className="h-full w-full object-cover" />
+              ) : (
+                <User className="h-10 w-10 text-muted-foreground" />
+              )}
+            </div>
+            {canEdit(sportif.categoryId) && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => photoInputRef.current?.click()}
+                  disabled={uploadingPhoto}
+                  className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  title="Changer la photo"
+                >
+                  {uploadingPhoto ? (
+                    <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Camera className="h-5 w-5 text-white" />
+                  )}
+                </button>
+                <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+              </>
+            )}
           </div>
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-3 mb-3">
@@ -524,42 +599,80 @@ const SportifDetails: React.FC = () => {
             <div>
                  <div className="flex justify-between items-center mb-4">
                      <h3 className="text-lg font-medium text-foreground">Évaluations</h3>
-                     <button 
-                        onClick={() => setIsEvaluationModalOpen(true)}
-                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90"
-                     >
-                         <Plus className="h-4 w-4 mr-1" /> Ajouter une évaluation
-                     </button>
+                     {canEdit(sportif.categoryId) && user?.role === 'COACH' && (
+                       <button
+                          onClick={() => setIsEvaluationModalOpen(true)}
+                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90"
+                       >
+                           <Plus className="h-4 w-4 mr-1" /> Ajouter une évaluation
+                       </button>
+                     )}
                  </div>
 
                  <div className="space-y-4">
-                    {evaluations.map(evaluation => (
-                        <div key={evaluation.id} className="bg-card p-4 rounded-lg shadow-sm border border-border">
-                            <div className="flex justify-between items-start mb-2">
-                                <div className="flex items-center gap-2">
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">
-                                        {evaluation.type === 'TECHNIQUE' ? 'Technique' :
-                                         evaluation.type === 'PHYSIQUE' ? 'Physique' :
-                                         evaluation.type === 'TACTIQUE' ? 'Tactique' :
-                                         evaluation.type === 'MENTAL' ? 'Mental' : evaluation.type}
-                                    </span>
-                                    <span className="text-xs text-muted-foreground">
-                                        {new Date(evaluation.date).toLocaleDateString('fr-FR')}
-                                    </span>
+                    {evaluations.map(evaluation => {
+                        let scores: Record<string, number> = {};
+                        try { scores = JSON.parse(evaluation.ratings); } catch {}
+                        const scoreEntries = Object.entries(scores).filter(([, v]) => typeof v === 'number');
+                        const avg = scoreEntries.length > 0 ? scoreEntries.reduce((s, [, v]) => s + v, 0) / scoreEntries.length : null;
+                        const labelMap: Record<string, string> = { technique: 'Technique', endurance: 'Endurance', vitesse: 'Vitesse', mental: 'Mental' };
+                        const colorMap: Record<string, string> = { technique: 'bg-blue-500', endurance: 'bg-green-500', vitesse: 'bg-orange-500', mental: 'bg-purple-500' };
+                        return (
+                          <div key={evaluation.id} className="bg-card p-5 rounded-xl shadow-sm border border-border">
+                            <div className="flex justify-between items-start mb-4">
+                              <div className="flex items-center gap-3">
+                                {avg !== null && (
+                                  <div className="h-12 w-12 rounded-xl bg-primary/10 border border-primary/20 flex flex-col items-center justify-center shrink-0">
+                                    <span className="text-lg font-bold text-primary leading-none">{avg.toFixed(1)}</span>
+                                    <span className="text-[10px] text-muted-foreground">/10</span>
+                                  </div>
+                                )}
+                                <div>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <p className="text-sm font-semibold text-foreground">Évaluation globale</p>
+                                    {(evaluation as any).training && (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                                        {(evaluation as any).training.type}
+                                        {(evaluation as any).training.opponent ? ` · vs ${(evaluation as any).training.opponent}` : ''}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">{new Date(evaluation.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                                  {evaluation.coach && <p className="text-xs text-muted-foreground">par {evaluation.coach.user.name}</p>}
                                 </div>
-                                <button onClick={() => handleDeleteEvaluation(evaluation.id)} className="text-muted-foreground hover:text-destructive">
+                              </div>
+                              {canEdit(sportif.categoryId) && user?.role === 'COACH' && (
+                                <div className="flex items-center gap-1">
+                                  <button onClick={() => openEditEvaluation(evaluation)} className="text-muted-foreground hover:text-primary p-1 rounded" title="Modifier">
+                                    <Edit2 className="h-4 w-4" />
+                                  </button>
+                                  <button onClick={() => handleDeleteEvaluation(evaluation.id)} className="text-muted-foreground hover:text-destructive p-1 rounded" title="Supprimer">
                                     <Trash2 className="h-4 w-4" />
-                                </button>
+                                  </button>
+                                </div>
+                              )}
                             </div>
-                            <div className="mb-2">
-                                <h4 className="text-sm font-medium text-foreground mb-1">Notes :</h4>
-                                <pre className="text-xs bg-muted p-2 rounded text-foreground">{evaluation.ratings}</pre>
-                            </div>
-                            {evaluation.comment && (
-                                <p className="text-sm text-muted-foreground italic">"{evaluation.comment}"</p>
+                            {scoreEntries.length > 0 && (
+                              <div className="space-y-2.5 mb-3">
+                                {scoreEntries.map(([key, val]) => (
+                                  <div key={key}>
+                                    <div className="flex justify-between items-center mb-1">
+                                      <span className="text-xs font-medium text-foreground">{labelMap[key] ?? key}</span>
+                                      <span className="text-xs font-bold text-foreground">{val}<span className="text-muted-foreground font-normal">/10</span></span>
+                                    </div>
+                                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                      <div className={`h-full rounded-full transition-all ${colorMap[key] ?? 'bg-primary'}`} style={{ width: `${(val / 10) * 100}%` }} />
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
                             )}
-                        </div>
-                    ))}
+                            {evaluation.comment && (
+                              <p className="text-sm text-muted-foreground italic border-t border-border pt-3 mt-3">"{evaluation.comment}"</p>
+                            )}
+                          </div>
+                        );
+                    })}
                     {evaluations.length === 0 && (
                         <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-lg border border-dashed border-border">
                             Aucune évaluation pour le moment.
@@ -622,66 +735,110 @@ const SportifDetails: React.FC = () => {
       )}
 
       {/* Evaluation Modal */}
-      {isEvaluationModalOpen && (
-          <div className="fixed inset-0 bg-black/50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-            <div className="relative bg-card rounded-lg shadow-xl p-6 w-full max-w-md border border-border">
-              <h3 className="text-lg font-medium leading-6 text-foreground mb-4">Ajouter une évaluation</h3>
-              <form onSubmit={handleAddEvaluation}>
-                 <div className="mb-4">
-                     <label className="block text-sm font-medium text-foreground mb-1">Type</label>
-                     <select 
-                        className="block w-full rounded-md border-input bg-background text-foreground shadow-sm focus:border-primary focus:ring-primary sm:text-sm border p-2"
-                        value={newEvaluation.type}
-                        onChange={e => setNewEvaluation({...newEvaluation, type: e.target.value})}
-                     >
-                         <option value="TECHNIQUE">Technique</option>
-                         <option value="PHYSIQUE">Physique</option>
-                         <option value="TACTIQUE">Tactique</option>
-                         <option value="MENTAL">Mental</option>
-                     </select>
-                 </div>
-                 <div className="mb-4">
-                     <label className="block text-sm font-medium text-foreground mb-1">Notes (Format JSON)</label>
-                     <textarea 
-                        required
-                        rows={3}
-                        className="block w-full rounded-md border-input bg-background text-foreground shadow-sm focus:border-primary focus:ring-primary sm:text-sm border p-2 font-mono"
-                        placeholder='{"vitesse": 8, "endurance": 7}'
-                        value={newEvaluation.ratings}
-                        onChange={e => setNewEvaluation({...newEvaluation, ratings: e.target.value})}
-                     />
-                     <p className="text-xs text-muted-foreground mt-1">Entrez des paires clé-valeur JSON valides ex. {'{"passe": 8}'}</p>
-                 </div>
-                 <div className="mb-4">
-                     <label className="block text-sm font-medium text-foreground mb-1">Commentaire</label>
-                     <textarea 
-                        rows={3}
-                        className="block w-full rounded-md border-input bg-background text-foreground shadow-sm focus:border-primary focus:ring-primary sm:text-sm border p-2"
-                        value={newEvaluation.comment}
-                        onChange={e => setNewEvaluation({...newEvaluation, comment: e.target.value})}
-                     />
-                 </div>
-                 <div className="flex justify-end gap-3">
-                     <button
-                       type="button"
-                       disabled={isSubmittingEvaluation}
-                       onClick={() => setIsEvaluationModalOpen(false)}
-                       className="px-4 py-2 border border-input rounded-md text-foreground hover:bg-muted"
-                     >
-                       Annuler
-                     </button>
-                     <button
-                       type="submit"
-                       className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
-                       disabled={isSubmittingEvaluation}
-                     >
-                       {isSubmittingEvaluation ? 'Enregistrement...' : 'Enregistrer'}
-                     </button>
-                 </div>
+      {isEvaluationModalOpen && (() => {
+        const criteria: { key: keyof typeof evalScores; label: string; color: string }[] = [
+          { key: 'technique', label: 'Technique', color: '#3b82f6' },
+          { key: 'endurance', label: 'Endurance', color: '#22c55e' },
+          { key: 'vitesse',   label: 'Vitesse',   color: '#f97316' },
+          { key: 'mental',    label: 'Mental',    color: '#a855f7' },
+        ];
+        const avg = (Object.values(evalScores).reduce((a, b) => a + b, 0) / criteria.length).toFixed(1);
+        return (
+          <div className="fixed inset-0 bg-black/60 overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
+            <div className="relative bg-card rounded-2xl shadow-2xl p-6 w-full max-w-lg border border-border">
+              <h3 className="text-lg font-semibold text-foreground mb-1">{editingEvaluation ? 'Modifier l\'évaluation' : 'Nouvelle évaluation'}</h3>
+              <p className="text-xs text-muted-foreground mb-5">Notez chaque critère de 1 à 10</p>
+              <form onSubmit={handleSaveEvaluation}>
+                {/* Score global */}
+                <div className="flex items-center gap-3 bg-muted/30 rounded-xl px-4 py-3 mb-5 border border-border">
+                  <div className="h-12 w-12 rounded-xl bg-primary/10 border border-primary/20 flex flex-col items-center justify-center shrink-0">
+                    <span className="text-xl font-bold text-primary leading-none">{avg}</span>
+                    <span className="text-[10px] text-muted-foreground">/10</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Note globale</p>
+                    <p className="text-xs text-muted-foreground">Moyenne des 4 critères</p>
+                  </div>
+                </div>
+
+                {/* Événement lié */}
+                <div className="mb-5">
+                  <label className="block text-sm font-medium text-foreground mb-1.5">
+                    Événement lié <span className="text-muted-foreground font-normal">(optionnel)</span>
+                  </label>
+                  <select
+                    value={evalTrainingId}
+                    onChange={e => setEvalTrainingId(e.target.value)}
+                    className="block w-full rounded-lg border border-input bg-background text-foreground px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="">— Aucun événement —</option>
+                    {sportifEvents.map(ev => (
+                      <option key={ev.id} value={ev.id}>
+                        {ev.type}{ev.opponent ? ` · vs ${ev.opponent}` : ''} · {new Date(ev.date).toLocaleDateString('fr-FR')}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Sliders */}
+                <div className="space-y-4 mb-5">
+                  {criteria.map(({ key, label, color }) => (
+                    <div key={key}>
+                      <div className="flex justify-between items-center mb-1.5">
+                        <label className="text-sm font-medium text-foreground">{label}</label>
+                        <span className="text-sm font-bold" style={{ color }}>{evalScores[key]}<span className="text-xs text-muted-foreground font-normal">/10</span></span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-muted-foreground w-3">1</span>
+                        <input
+                          type="range"
+                          min={1} max={10} step={1}
+                          value={evalScores[key]}
+                          onChange={e => setEvalScores(prev => ({ ...prev, [key]: Number(e.target.value) }))}
+                          className="flex-1 h-2 rounded-full appearance-none cursor-pointer"
+                          style={{ accentColor: color }}
+                        />
+                        <span className="text-xs text-muted-foreground w-3">10</span>
+                      </div>
+                      <div className="flex justify-between mt-1 px-5">
+                        {[1,2,3,4,5,6,7,8,9,10].map(n => (
+                          <button key={n} type="button"
+                            onClick={() => setEvalScores(prev => ({ ...prev, [key]: n }))}
+                            className={`text-[10px] w-5 h-5 rounded-full transition-all ${evalScores[key] === n ? 'font-bold text-white' : 'text-muted-foreground hover:text-foreground'}`}
+                            style={evalScores[key] === n ? { backgroundColor: color } : {}}
+                          >{n}</button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Commentaire */}
+                <div className="mb-5">
+                  <label className="block text-sm font-medium text-foreground mb-1.5">Commentaire <span className="text-muted-foreground font-normal">(optionnel)</span></label>
+                  <textarea
+                    rows={2}
+                    className="block w-full rounded-lg border border-input bg-background text-foreground px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="Observations, points à travailler..."
+                    value={evalComment}
+                    onChange={e => setEvalComment(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3">
+                  <button type="button" disabled={isSubmittingEvaluation}
+                    onClick={() => { setIsEvaluationModalOpen(false); setEvalScores({ ...defaultScores }); setEvalComment(''); setEditingEvaluation(null); }}
+                    className="px-4 py-2 border border-input rounded-lg text-foreground hover:bg-muted text-sm"
+                  >Annuler</button>
+                  <button type="submit" disabled={isSubmittingEvaluation}
+                    className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium"
+                  >{isSubmittingEvaluation ? 'Enregistrement...' : 'Enregistrer'}</button>
+                </div>
               </form>
             </div>
           </div>
-      )}
+        );
+      })()}
     </div>
   );
 };
