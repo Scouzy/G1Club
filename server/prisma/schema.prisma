@@ -1,0 +1,239 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Club {
+  id        String   @id @default(uuid())
+  name      String
+  logoUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  address   String?
+  city      String?
+  email     String?
+  phone     String?
+
+  website   String?
+  facebook  String?
+  instagram String?
+  twitter   String?
+  youtube   String?
+  tiktok    String?
+  linkedin  String?
+
+  users         User[]
+  categories    Category[]
+  announcements ClubAnnouncement[]
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("SPORTIF")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clubId    String?
+  club      Club?    @relation(fields: [clubId], references: [id])
+
+  emailVerified     Boolean  @default(false)
+  emailVerifyToken  String?
+
+  // Relations
+  sportifProfile Sportif?
+  coachProfile   Coach?
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+  announcements    ClubAnnouncement[] @relation("AnnouncementAuthor")
+}
+
+model Coach {
+  id      String @id @default(uuid())
+  userId  String @unique
+  user    User   @relation(fields: [userId], references: [id])
+  
+  // Profile fields
+  phone          String?
+  address        String?
+  qualifications String?
+  experience     String?
+  bio            String?
+  specialties    String?
+  photoUrl       String?
+
+  // Relations
+  categories Category[]
+  annotations Annotation[]
+  trainings   Training[]
+  evaluations Evaluation[]
+}
+
+model Team {
+  id         String   @id @default(uuid())
+  name       String
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+  createdAt  DateTime @default(now())
+
+  sportifs   Sportif[]
+  messages   Message[]
+
+  @@unique([categoryId, name])
+}
+
+model Sportif {
+  id        String   @id @default(uuid())
+  userId    String?  @unique
+  user      User?    @relation(fields: [userId], references: [id])
+  
+  firstName String
+  lastName  String
+  birthDate DateTime
+  height    Float? // in cm
+  weight    Float? // in kg
+  position  String?
+  
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  teamId     String?
+  team       Team?    @relation(fields: [teamId], references: [id])
+
+  // Relations
+  annotations Annotation[]
+  attendances Attendance[]
+  evaluations Evaluation[]
+}
+
+model Category {
+  id     String  @id @default(uuid())
+  name   String  // U13, U15, etc.
+  color  String? // Hex color e.g. #3b82f6
+  clubId String
+  club   Club    @relation(fields: [clubId], references: [id])
+
+  @@unique([clubId, name])
+
+  // Relations
+  sportifs          Sportif[]
+  coaches           Coach[]
+  trainings         Training[]
+  trainingSchedules TrainingSchedule[]
+  messages          Message[]
+  teams             Team[]
+}
+
+model TrainingSchedule {
+  id         String   @id @default(uuid())
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+  dayOfWeek  Int      // 1=Lundi, 2=Mardi, ..., 7=Dimanche
+  startTime  String   // "HH:MM"
+  duration   Int      // minutes
+  location   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Training {
+  id          String   @id @default(uuid())
+  date        DateTime
+  duration    Int // in minutes
+  type        String // Entraînement, Match, Tournoi, Stage
+  objectives  String?
+  report      String?
+  
+  // Event fields
+  location    String?
+  opponent    String?
+  result      String?
+  
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  
+  coachId     String
+  coach       Coach    @relation(fields: [coachId], references: [id])
+
+  // Relations
+  attendances Attendance[]
+}
+
+model Attendance {
+  id         String   @id @default(uuid())
+  trainingId String
+  training   Training @relation(fields: [trainingId], references: [id])
+  
+  sportifId  String
+  sportif    Sportif  @relation(fields: [sportifId], references: [id])
+  
+  present    Boolean  @default(false)
+  reason     String?
+}
+
+model Annotation {
+  id        String   @id @default(uuid())
+  content   String
+  type      String   // TECHNIQUE, POINT_FORT, POINT_FAIBLE, RECOMMANDATION
+  createdAt DateTime @default(now())
+  
+  coachId   String
+  coach     Coach    @relation(fields: [coachId], references: [id])
+  
+  sportifId String
+  sportif   Sportif  @relation(fields: [sportifId], references: [id])
+}
+
+model Evaluation {
+  id        String   @id @default(uuid())
+  date      DateTime @default(now())
+  type      String   // TECHNIQUE, PHYSIQUE, TACTIQUE, MENTAL
+  ratings   String   // JSON string storing key-value pairs
+  comment   String?
+  
+  sportifId String
+  sportif   Sportif  @relation(fields: [sportifId], references: [id])
+  
+  coachId   String
+  coach     Coach    @relation(fields: [coachId], references: [id])
+}
+
+model ClubAnnouncement {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clubId    String
+  club      Club     @relation(fields: [clubId], references: [id])
+
+  authorId  String
+  author    User     @relation("AnnouncementAuthor", fields: [authorId], references: [id])
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  isRead    Boolean  @default(false)
+  
+  senderId  String
+  sender    User     @relation("SentMessages", fields: [senderId], references: [id])
+  
+  receiverId  String?
+  receiver    User?     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+
+  teamId      String?
+  team        Team?     @relation(fields: [teamId], references: [id])
+}

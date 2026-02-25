@@ -1,0 +1,8 @@
+-- AlterTable
+ALTER TABLE "Club" ADD COLUMN "facebook" TEXT;
+ALTER TABLE "Club" ADD COLUMN "instagram" TEXT;
+ALTER TABLE "Club" ADD COLUMN "linkedin" TEXT;
+ALTER TABLE "Club" ADD COLUMN "tiktok" TEXT;
+ALTER TABLE "Club" ADD COLUMN "twitter" TEXT;
+ALTER TABLE "Club" ADD COLUMN "website" TEXT;
+ALTER TABLE "Club" ADD COLUMN "youtube" TEXT;

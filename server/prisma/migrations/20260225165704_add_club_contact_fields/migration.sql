@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "Club" ADD COLUMN "address" TEXT;
+ALTER TABLE "Club" ADD COLUMN "city" TEXT;
+ALTER TABLE "Club" ADD COLUMN "email" TEXT;
+ALTER TABLE "Club" ADD COLUMN "phone" TEXT;
