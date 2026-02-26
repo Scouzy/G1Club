@@ -30,6 +30,7 @@ model Club {
   users         User[]
   categories    Category[]
   announcements ClubAnnouncement[]
+  stages        Stage[]
 }
 
 model User {
@@ -109,9 +110,100 @@ model Sportif {
   team       Team?    @relation(fields: [teamId], references: [id])
 
   // Relations
-  annotations Annotation[]
-  attendances Attendance[]
-  evaluations Evaluation[]
+  annotations       Annotation[]
+  attendances       Attendance[]
+  evaluations       Evaluation[]
+  licences          Licence[]
+  stageParticipants StageParticipant[]
+}
+
+model Licence {
+  id          String   @id @default(uuid())
+  number      String
+  type        String   // Compétition, Loisir, Dirigeant, Arbitre
+  status      String   @default("ACTIVE") // ACTIVE, EXPIRED, SUSPENDED, PENDING
+  startDate   DateTime
+  expiryDate  DateTime
+  federation  String?
+  notes       String?
+  totalAmount Float?   // Montant total de la licence en €
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  sportifId   String
+  sportif     Sportif  @relation(fields: [sportifId], references: [id])
+  payments    LicencePayment[]
+}
+
+model LicencePayment {
+  id          String   @id @default(uuid())
+  installment Int      // Numéro du versement (1, 2, 3…)
+  amount      Float    // Montant de ce versement
+  dueDate     DateTime // Date d'échéance
+  paidDate    DateTime? // Date de paiement effectif
+  status      String   @default("PENDING") // PENDING, PAID, LATE
+  method      String?  // Espèces, Chèque, Virement, CB
+  reference   String?  // Référence du paiement
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  licenceId   String
+  licence     Licence  @relation(fields: [licenceId], references: [id], onDelete: Cascade)
+}
+
+model Stage {
+  id           String   @id @default(uuid())
+  name         String
+  description  String?
+  startDate    DateTime
+  endDate      DateTime
+  startTime    String   // "HH:MM"
+  endTime      String   // "HH:MM"
+  location     String?
+  price        Float
+  maxSpots     Int?
+  status       String   @default("OPEN") // OPEN, FULL, CANCELLED, COMPLETED
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  clubId       String
+  club         Club     @relation(fields: [clubId], references: [id])
+
+  participants StageParticipant[]
+}
+
+model StageParticipant {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  stageId   String
+  stage     Stage    @relation(fields: [stageId], references: [id], onDelete: Cascade)
+
+  sportifId String
+  sportif   Sportif  @relation(fields: [sportifId], references: [id])
+
+  payments  StagePayment[]
+
+  @@unique([stageId, sportifId])
+}
+
+model StagePayment {
+  id          String    @id @default(uuid())
+  installment Int
+  amount      Float
+  dueDate     DateTime
+  paidDate    DateTime?
+  status      String    @default("PENDING") // PENDING, PAID, LATE
+  method      String?
+  reference   String?
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  participantId String
+  participant   StageParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
 }
 
 model Category {

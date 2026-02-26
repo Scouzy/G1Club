@@ -23,6 +23,8 @@ import {
   Building2,
   Globe,
   Check,
+  FileText,
+  Wallet,
 } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -56,6 +58,15 @@ const navItems: NavItem[] = [
       { label: 'Coachs',     path: '/admin/coaches',  icon: Users },
       { label: 'Sportifs',   path: '/coach/sportifs', icon: User },
       { label: 'Événements', path: '/coach/events',   icon: Calendar },
+    ],
+  },
+  {
+    label: 'Gestion Paiements',
+    icon: Wallet,
+    roles: ['ADMIN'],
+    children: [
+      { label: 'Licences', path: '/admin/licences', icon: FileText },
+      { label: 'Stages',   path: '/admin/stages',   icon: Calendar },
     ],
   },
   {

@@ -27,6 +27,8 @@ import scheduleRoutes from './routes/scheduleRoutes';
 import clubRoutes from './routes/clubRoutes';
 import teamRoutes from './routes/teamRoutes';
 import announcementRoutes from './routes/announcementRoutes';
+import licenceRoutes from './routes/licenceRoutes';
+import stageRoutes from './routes/stageRoutes';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -42,6 +44,8 @@ app.use('/api/schedules', scheduleRoutes);
 app.use('/api/club', clubRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/announcements', announcementRoutes);
+app.use('/api/licences', licenceRoutes);
+app.use('/api/stages', stageRoutes);
 
 app.get('/', (req, res) => {
   res.send('SportEmergence API is running');

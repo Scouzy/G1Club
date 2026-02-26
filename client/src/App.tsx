@@ -8,6 +8,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import UserManagement from './pages/admin/UserManagement';
+import LicenseManagement from './pages/admin/LicenseManagement';
+import StageManagement from './pages/admin/StageManagement';
 import CategoryManagement from './pages/admin/CategoryManagement';
 import CoachList from './pages/admin/CoachList';
 import CoachDashboard from './pages/coach/CoachDashboard';
@@ -51,6 +53,8 @@ function App() {
                 <Route path="/admin/users" element={<UserManagement />} />
                 <Route path="/admin/categories" element={<CategoryManagement />} />
                 <Route path="/admin/coaches" element={<CoachList />} />
+                <Route path="/admin/licences" element={<LicenseManagement />} />
+                <Route path="/admin/stages" element={<StageManagement />} />
                 <Route path="/admin/club" element={<ClubSettingsPage />} />
               </Route>
 
