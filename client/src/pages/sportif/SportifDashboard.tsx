@@ -371,10 +371,10 @@ const SportifDashboard: React.FC = () => {
               )}
             </div>
 
-            {/* Évolution des scores */}
+            {/* Évolution des performances */}
             <div className="bg-card border border-border rounded-xl p-6">
               <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                <TrendingUp size={16} className="text-primary" /> Évolution des scores
+                <TrendingUp size={16} className="text-primary" /> Évolution des performances
               </h3>
               {evolutionData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={240}>
