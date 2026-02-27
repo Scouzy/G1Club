@@ -10,6 +10,12 @@ export interface Sportif {
   weight?: number;
   position?: string;
   photoUrl?: string;
+  gender?: string;
+  address?: string;
+  email?: string;
+  phone?: string;
+  phoneFather?: string;
+  phoneMother?: string;
   categoryId: string;
   category?: Category;
   userId?: string;

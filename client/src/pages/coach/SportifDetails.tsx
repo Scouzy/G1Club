@@ -4,7 +4,7 @@ import { Sportif, getSportifById } from '../../services/sportifService';
 import { Annotation, getAnnotations, createAnnotation, deleteAnnotation } from '../../services/annotationService';
 import { Evaluation, getEvaluations, createEvaluation, updateEvaluation, deleteEvaluation } from '../../services/evaluationService';
 import { Team, getTeamsByCategory, assignSportifToTeam } from '../../services/teamService';
-import { User, Calendar, Ruler, Weight, Plus, Trash2, CheckCircle, XCircle, Save, TrendingUp, Shield, Camera, Edit2 } from 'lucide-react';
+import { User, Calendar, Ruler, Weight, Plus, Trash2, CheckCircle, XCircle, Save, TrendingUp, Shield, Camera, Edit2, Phone, Mail, MapPin, UserCheck } from 'lucide-react';
 import api from '../../lib/axios';
 import { useRefresh } from '../../context/RefreshContext';
 import { useCoachCategories } from '../../hooks/useCoachCategories';
@@ -43,7 +43,12 @@ const SportifDetails: React.FC = () => {
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [attendances, setAttendances] = useState<AttendanceEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'presences' | 'annotations' | 'evaluations'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'presences' | 'annotations' | 'evaluations' | 'infos'>('overview');
+
+  // Personal info form
+  const [infoForm, setInfoForm] = useState({ gender: '', address: '', email: '', phone: '', phoneFather: '', phoneMother: '' });
+  const [savingInfo, setSavingInfo] = useState(false);
+  const [infoSaved, setInfoSaved] = useState(false);
 
   // Team assignment
   const [teams, setTeams] = useState<Team[]>([]);
@@ -106,6 +111,14 @@ const SportifDetails: React.FC = () => {
         getEvaluations(sportifId),
       ]);
       setSportif(sportifData);
+      setInfoForm({
+        gender:      sportifData.gender      ?? '',
+        address:     sportifData.address     ?? '',
+        email:       sportifData.email       ?? '',
+        phone:       sportifData.phone       ?? '',
+        phoneFather: sportifData.phoneFather ?? '',
+        phoneMother: sportifData.phoneMother ?? '',
+      });
       setAnnotations(annotationsData);
       setEvaluations(evaluationsData);
       const raw: AttendanceEntry[] = (sportifData as any).attendances ?? [];
@@ -377,6 +390,7 @@ const SportifDetails: React.FC = () => {
             { key: 'presences',   label: `Présences (${totalSessions})` },
             { key: 'annotations', label: `Annotations (${annotations.length})` },
             { key: 'evaluations', label: `Évaluations (${evaluations.length})` },
+            { key: 'infos',       label: 'Infos personnelles' },
           ] as const).map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
               className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
@@ -681,6 +695,131 @@ const SportifDetails: React.FC = () => {
                  </div>
             </div>
         )}
+
+        {/* ===== INFOS PERSONNELLES ===== */}
+        {activeTab === 'infos' && (() => {
+          const birth = new Date(sportif.birthDate);
+          const today = new Date();
+          let age = today.getFullYear() - birth.getFullYear();
+          const m = today.getMonth() - birth.getMonth();
+          if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+
+          const handleSaveInfo = async (e: React.FormEvent) => {
+            e.preventDefault();
+            if (!id) return;
+            setSavingInfo(true);
+            try {
+              await api.put(`/sportifs/${id}`, infoForm);
+              setSportif(prev => prev ? { ...prev, ...infoForm } : prev);
+              setInfoSaved(true);
+              setTimeout(() => setInfoSaved(false), 2500);
+            } catch (err) {
+              console.error(err);
+            } finally {
+              setSavingInfo(false);
+            }
+          };
+
+          const field = (
+            label: string,
+            key: keyof typeof infoForm,
+            icon: React.ReactNode,
+            type = 'text',
+            placeholder = ''
+          ) => (
+            <div>
+              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                {icon} {label}
+              </label>
+              <input
+                type={type}
+                value={infoForm[key]}
+                onChange={e => setInfoForm(prev => ({ ...prev, [key]: e.target.value }))}
+                placeholder={placeholder}
+                disabled={!canEdit(sportif.categoryId)}
+                className="block w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-60"
+              />
+            </div>
+          );
+
+          return (
+            <form onSubmit={handleSaveInfo} className="space-y-6">
+              {/* Âge calculé */}
+              <div className="bg-card border border-border rounded-xl p-5">
+                <div className="flex items-center gap-4">
+                  <div className="h-14 w-14 rounded-xl bg-primary/10 border border-primary/20 flex flex-col items-center justify-center shrink-0">
+                    <span className="text-2xl font-bold text-primary leading-none">{age}</span>
+                    <span className="text-[10px] text-muted-foreground mt-0.5">ans</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Âge du sportif</p>
+                    <p className="text-sm text-muted-foreground">
+                      Né(e) le {birth.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Informations personnelles */}
+              <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <UserCheck size={15} className="text-primary" /> Identité
+                </h3>
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Genre</label>
+                  <select
+                    value={infoForm.gender}
+                    onChange={e => setInfoForm(prev => ({ ...prev, gender: e.target.value }))}
+                    disabled={!canEdit(sportif.categoryId)}
+                    className="block w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-60"
+                  >
+                    <option value="">— Non renseigné —</option>
+                    <option value="Masculin">Masculin</option>
+                    <option value="Féminin">Féminin</option>
+                    <option value="Autre">Autre</option>
+                  </select>
+                </div>
+                {field('Adresse complète', 'address', <MapPin size={12} />, 'text', '1 rue de la Paix, 75001 Paris')}
+              </div>
+
+              {/* Coordonnées */}
+              <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Phone size={15} className="text-primary" /> Coordonnées
+                </h3>
+                {field('Email', 'email', <Mail size={12} />, 'email', 'prenom.nom@email.fr')}
+                {field('Téléphone', 'phone', <Phone size={12} />, 'tel', '06 00 00 00 00')}
+              </div>
+
+              {/* Contacts parents */}
+              <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Phone size={15} className="text-primary" /> Contacts parentaux
+                </h3>
+                {field('Téléphone père', 'phoneFather', <Phone size={12} />, 'tel', '06 00 00 00 00')}
+                {field('Téléphone mère', 'phoneMother', <Phone size={12} />, 'tel', '06 00 00 00 00')}
+              </div>
+
+              {canEdit(sportif.categoryId) && (
+                <div className="flex items-center gap-3">
+                  <button
+                    type="submit"
+                    disabled={savingInfo}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                  >
+                    <Save size={14} />
+                    {savingInfo ? 'Enregistrement...' : 'Enregistrer'}
+                  </button>
+                  {infoSaved && (
+                    <span className="flex items-center gap-1.5 text-sm text-green-400 font-medium">
+                      <CheckCircle size={14} /> Enregistré !
+                    </span>
+                  )}
+                </div>
+              )}
+            </form>
+          );
+        })()}
       </div>
 
       {/* Annotation Modal */}

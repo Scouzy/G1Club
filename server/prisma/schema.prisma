@@ -95,13 +95,19 @@ model Sportif {
   userId    String?  @unique
   user      User?    @relation(fields: [userId], references: [id])
   
-  firstName String
-  lastName  String
-  birthDate DateTime
-  height    Float? // in cm
-  weight    Float? // in kg
-  position  String?
-  photoUrl  String?
+  firstName   String
+  lastName    String
+  birthDate   DateTime
+  height      Float? // in cm
+  weight      Float? // in kg
+  position    String?
+  photoUrl    String?
+  gender      String? // Masculin, Féminin, Autre
+  address     String?
+  email       String?
+  phone       String?
+  phoneFather String?
+  phoneMother String?
   
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id])
