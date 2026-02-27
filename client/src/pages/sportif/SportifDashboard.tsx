@@ -10,7 +10,8 @@ import {
 } from 'recharts';
 import {
   User, TrendingUp, Calendar, CheckCircle, XCircle, Star,
-  Activity, Target, Dumbbell, Brain, Zap, Shield, MessageSquare, Trophy, Clock, Camera
+  Activity, Target, Dumbbell, Brain, Zap, Shield, MessageSquare, Trophy, Clock, Camera,
+  Phone, Mail, MapPin, UserCheck, Save
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -23,6 +24,12 @@ interface SportifProfile {
   height?: number;
   weight?: number;
   position?: string;
+  gender?: string;
+  address?: string;
+  email?: string;
+  phone?: string;
+  phoneFather?: string;
+  phoneMother?: string;
   category: { id: string; name: string };
   evaluations: Evaluation[];
   attendances: Attendance[];
@@ -127,7 +134,10 @@ const SportifDashboard: React.FC = () => {
   const { attendanceVersion } = useRefresh();
   const [profile, setProfile] = useState<SportifProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'evaluations' | 'presences' | 'annotations'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'evaluations' | 'presences' | 'annotations' | 'infos'>('overview');
+  const [infoForm, setInfoForm] = useState({ gender: '', address: '', email: '', phone: '', phoneFather: '', phoneMother: '' });
+  const [savingInfo, setSavingInfo] = useState(false);
+  const [infoSaved, setInfoSaved] = useState(false);
   const [categoryMessages, setCategoryMessages] = useState<Message[]>([]);
   const [recentMatches, setRecentMatches] = useState<Training[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<Training[]>([]);
@@ -158,6 +168,14 @@ const SportifDashboard: React.FC = () => {
     api.get('/sportifs/me')
       .then(res => {
         setProfile(res.data);
+        setInfoForm({
+          gender:      res.data.gender      ?? '',
+          address:     res.data.address     ?? '',
+          email:       res.data.email       ?? '',
+          phone:       res.data.phone       ?? '',
+          phoneFather: res.data.phoneFather ?? '',
+          phoneMother: res.data.phoneMother ?? '',
+        });
         if (res.data?.category?.id) {
           const catId = res.data.category.id;
           getCategoryMessages(catId)
@@ -242,10 +260,11 @@ const SportifDashboard: React.FC = () => {
     }));
 
   const tabs = [
-    { id: 'overview', label: 'Vue d\'ensemble', icon: TrendingUp },
-    { id: 'evaluations', label: 'Évaluations', icon: Star },
-    { id: 'presences', label: 'Présences', icon: Calendar },
-    { id: 'annotations', label: 'Notes du coach', icon: Zap },
+    { id: 'overview',    label: 'Vue d\'ensemble',      icon: TrendingUp },
+    { id: 'evaluations', label: 'Évaluations',           icon: Star },
+    { id: 'presences',   label: 'Présences',             icon: Calendar },
+    { id: 'annotations', label: 'Notes du coach',        icon: Zap },
+    { id: 'infos',       label: 'Mes infos',             icon: UserCheck },
   ] as const;
 
   if (loading) {
@@ -716,6 +735,106 @@ const SportifDashboard: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* ===== INFOS PERSONNELLES ===== */}
+      {activeTab === 'infos' && (() => {
+        const birth = new Date(profile.birthDate);
+        const today = new Date();
+        let age = today.getFullYear() - birth.getFullYear();
+        const m = today.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+
+        const handleSave = async (e: React.FormEvent) => {
+          e.preventDefault();
+          setSavingInfo(true);
+          try {
+            await api.put('/sportifs/me', infoForm);
+            setProfile(prev => prev ? { ...prev, ...infoForm } : prev);
+            setInfoSaved(true);
+            setTimeout(() => setInfoSaved(false), 2500);
+          } catch (err) {
+            console.error(err);
+          } finally {
+            setSavingInfo(false);
+          }
+        };
+
+        const field = (label: string, key: keyof typeof infoForm, icon: React.ReactNode, type = 'text', placeholder = '') => (
+          <div>
+            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 flex items-center gap-1.5">{icon} {label}</label>
+            <input
+              type={type}
+              value={infoForm[key]}
+              onChange={e => setInfoForm(prev => ({ ...prev, [key]: e.target.value }))}
+              placeholder={placeholder}
+              className="block w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+        );
+
+        return (
+          <form onSubmit={handleSave} className="space-y-5">
+            {/* Âge */}
+            <div className="bg-card border border-border rounded-xl p-5">
+              <div className="flex items-center gap-4">
+                <div className="h-14 w-14 rounded-xl bg-primary/10 border border-primary/20 flex flex-col items-center justify-center shrink-0">
+                  <span className="text-2xl font-bold text-primary leading-none">{age}</span>
+                  <span className="text-[10px] text-muted-foreground mt-0.5">ans</span>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Mon âge</p>
+                  <p className="text-sm text-muted-foreground">Né(e) le {birth.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Identité */}
+            <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><UserCheck size={15} className="text-primary" /> Identité</h3>
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Genre</label>
+                <select
+                  value={infoForm.gender}
+                  onChange={e => setInfoForm(prev => ({ ...prev, gender: e.target.value }))}
+                  className="block w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="">— Non renseigné —</option>
+                  <option value="Masculin">Masculin</option>
+                  <option value="Féminin">Féminin</option>
+                  <option value="Autre">Autre</option>
+                </select>
+              </div>
+              {field('Adresse complète', 'address', <MapPin size={12} />, 'text', '1 rue de la Paix, 75001 Paris')}
+            </div>
+
+            {/* Coordonnées */}
+            <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Phone size={15} className="text-primary" /> Mes coordonnées</h3>
+              {field('Email', 'email', <Mail size={12} />, 'email', 'mon@email.fr')}
+              {field('Téléphone', 'phone', <Phone size={12} />, 'tel', '06 00 00 00 00')}
+            </div>
+
+            {/* Parents */}
+            <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Phone size={15} className="text-primary" /> Contacts parentaux</h3>
+              {field('Téléphone père', 'phoneFather', <Phone size={12} />, 'tel', '06 00 00 00 00')}
+              {field('Téléphone mère', 'phoneMother', <Phone size={12} />, 'tel', '06 00 00 00 00')}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button type="submit" disabled={savingInfo}
+                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors">
+                <Save size={14} />{savingInfo ? 'Enregistrement...' : 'Enregistrer'}
+              </button>
+              {infoSaved && (
+                <span className="flex items-center gap-1.5 text-sm text-green-400 font-medium">
+                  <CheckCircle size={14} /> Enregistré !
+                </span>
+              )}
+            </div>
+          </form>
+        );
+      })()}
     </div>
   );
 };

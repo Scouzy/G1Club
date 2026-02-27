@@ -161,6 +161,36 @@ export const updateMyPhoto = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// Update own personal info — SPORTIF role
+export const updateMyself = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ message: 'Non autorisé' });
+
+    const sportif = await prisma.sportif.findUnique({ where: { userId } });
+    if (!sportif) return res.status(404).json({ message: 'Profil sportif non trouvé' });
+
+    const { gender, address, email, phone, phoneFather, phoneMother } = req.body;
+
+    const updated = await prisma.sportif.update({
+      where: { id: sportif.id },
+      data: {
+        ...(gender      !== undefined && { gender }),
+        ...(address     !== undefined && { address }),
+        ...(email       !== undefined && { email }),
+        ...(phone       !== undefined && { phone }),
+        ...(phoneFather !== undefined && { phoneFather }),
+        ...(phoneMother !== undefined && { phoneMother }),
+      }
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+};
+
 // Update Sportif — scoped to club
 export const updateSportif = async (req: AuthRequest, res: Response) => {
   try {
