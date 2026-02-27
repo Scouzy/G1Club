@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../lib/axios';
-import { Plus, X, Pencil, Trash2, Search, AlertTriangle, CheckCircle, Clock, XCircle, FileText, Wallet } from 'lucide-react';
+import { Plus, X, Pencil, Trash2, Search, AlertTriangle, CheckCircle, Clock, XCircle, FileText, Wallet, RefreshCw } from 'lucide-react';
 import LicencePaymentsPanel from '../../components/LicencePaymentsPanel';
 
 interface Sportif {
@@ -98,6 +98,28 @@ const LicenseManagement: React.FC = () => {
   const openCreate = () => {
     setEditingLicence(null);
     setForm({ ...emptyForm });
+    setError('');
+    setShowModal(true);
+  };
+
+  const openRenew = (l: Licence) => {
+    setEditingLicence(null);
+    const today = new Date();
+    const year = today.getMonth() >= 8 ? today.getFullYear() : today.getFullYear() - 1;
+    const nextSeason = year + 1;
+    const newStart = new Date(nextSeason, 8, 1);   // 1er septembre saison N+1
+    const newExpiry = new Date(nextSeason + 1, 5, 30); // 30 juin saison N+2
+    setForm({
+      sportifId: l.sportif.id,
+      number: l.number,
+      type: l.type,
+      status: 'ACTIVE',
+      startDate: newStart.toISOString().slice(0, 10),
+      expiryDate: newExpiry.toISOString().slice(0, 10),
+      federation: l.federation || '',
+      notes: l.notes || '',
+      totalAmount: l.totalAmount?.toString() ?? '',
+    });
     setError('');
     setShowModal(true);
   };
@@ -348,6 +370,13 @@ const LicenseManagement: React.FC = () => {
                     <td className="px-5 py-3 text-muted-foreground">{l.federation || '—'}</td>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-1 justify-end">
+                        <button
+                          onClick={() => openRenew(l)}
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-green-50 dark:bg-green-950/40 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/60 text-xs font-medium transition-colors border border-green-200 dark:border-green-800"
+                          title="Renouveler la licence"
+                        >
+                          <RefreshCw size={13} /> Renouveler
+                        </button>
                         <button
                           onClick={() => setPaymentsLicence(l)}
                           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-xs font-medium transition-colors border border-blue-200 dark:border-blue-800"
