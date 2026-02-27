@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { User } from '../../services/authService';
 import { getUsers, deleteUser, createUser } from '../../services/userService';
-import { Trash2, UserPlus, Search } from 'lucide-react';
+import { Trash2, UserPlus, Search, Upload, Download, X, CheckCircle, AlertTriangle } from 'lucide-react';
 import ClubBanner from '../../components/ClubBanner';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../lib/axios';
@@ -16,6 +16,45 @@ const UserManagement: React.FC = () => {
   const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'SPORTIF' });
   const [allClubsUsers, setAllClubsUsers] = useState<{ clubId: string; clubName: string; logoUrl?: string | null; users: User[] }[]>([]);
   const activeClubId = localStorage.getItem('activeClubId');
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{ message: string; created: number; skipped: number; errors: string[] } | null>(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const importFileRef = React.useRef<HTMLInputElement>(null);
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    setImportResult(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await api.post('/users/import', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      setImportResult(res.data);
+      setShowImportModal(true);
+      await loadUsers();
+    } catch (err: any) {
+      setImportResult({ message: err?.response?.data?.message || "Erreur lors de l'import", created: 0, skipped: 0, errors: [] });
+      setShowImportModal(true);
+    } finally {
+      setImporting(false);
+      if (importFileRef.current) importFileRef.current.value = '';
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      const res = await api.get('/users/export', { responseType: 'blob' });
+      const url = URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'utilisateurs.xlsx';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert("Erreur lors de l'export");
+    }
+  };
 
   useEffect(() => {
     loadUsers();
@@ -88,15 +127,27 @@ const UserManagement: React.FC = () => {
   return (
     <div>
       <ClubBanner />
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-wrap justify-between items-center mb-6 gap-3">
         <h1 className="text-2xl font-bold text-foreground">Gestion des utilisateurs</h1>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90"
-        >
-          <UserPlus size={20} />
-          Ajouter un utilisateur
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={handleExport}
+            className="flex items-center gap-2 px-3 py-2 rounded-md border border-border text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            title="Exporter en Excel">
+            <Download size={15} /> Exporter
+          </button>
+          <label className={`flex items-center gap-2 px-3 py-2 rounded-md border border-border text-sm cursor-pointer transition-colors ${
+            importing ? 'opacity-50 cursor-not-allowed' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+          }`} title="Importer depuis Excel/CSV">
+            <Upload size={15} /> {importing ? 'Import...' : 'Importer'}
+            <input ref={importFileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImport} disabled={importing} />
+          </label>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 text-sm"
+          >
+            <UserPlus size={16} /> Ajouter un utilisateur
+          </button>
+        </div>
       </div>
 
       <div className="mb-6 relative">
@@ -248,6 +299,49 @@ const UserManagement: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Import result modal */}
+      {showImportModal && importResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-card border border-border rounded-xl shadow-xl w-full max-w-md p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-foreground">Résultat de l'import</h3>
+              <button onClick={() => setShowImportModal(false)} className="p-1 text-muted-foreground hover:text-foreground rounded">
+                <X size={18} />
+              </button>
+            </div>
+            <div className={`flex items-center gap-2 p-3 rounded-lg text-sm font-medium ${
+              importResult.created > 0 ? 'bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400' : 'bg-yellow-50 dark:bg-yellow-950/30 text-yellow-700 dark:text-yellow-400'
+            }`}>
+              {importResult.created > 0 ? <CheckCircle size={16} /> : <AlertTriangle size={16} />}
+              {importResult.message}
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="bg-muted/40 rounded-lg p-3 text-center">
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{importResult.created}</p>
+                <p className="text-muted-foreground text-xs mt-0.5">Créé(s)</p>
+              </div>
+              <div className="bg-muted/40 rounded-lg p-3 text-center">
+                <p className="text-2xl font-bold text-orange-500">{importResult.skipped}</p>
+                <p className="text-muted-foreground text-xs mt-0.5">Ignoré(s)</p>
+              </div>
+            </div>
+            {importResult.errors.length > 0 && (
+              <div className="space-y-1 max-h-48 overflow-y-auto">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Erreurs</p>
+                {importResult.errors.map((e, i) => (
+                  <p key={i} className="text-xs text-destructive flex items-start gap-1.5">
+                    <AlertTriangle size={11} className="shrink-0 mt-0.5" />{e}
+                  </p>
+                ))}
+              </div>
+            )}
+            <button onClick={() => setShowImportModal(false)}
+              className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90">
+              Fermer
+            </button>
           </div>
         </div>
       )}
