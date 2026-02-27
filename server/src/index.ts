@@ -115,6 +115,11 @@ const startServer = async () => {
         { resource: { model: getModelByName('Annotation'), client: prisma }, options: { navigation: { name: 'Suivi', icon: 'FileText' } } },
         { resource: { model: getModelByName('Evaluation'), client: prisma }, options: { navigation: { name: 'Suivi', icon: 'Activity' } } },
         { resource: { model: getModelByName('Message'), client: prisma }, options: { navigation: { name: 'Communication', icon: 'MessageSquare' } } },
+        { resource: { model: getModelByName('Licence'), client: prisma }, options: { navigation: { name: 'Gestion Paiements', icon: 'CreditCard' } } },
+        { resource: { model: getModelByName('LicencePayment'), client: prisma }, options: { navigation: { name: 'Gestion Paiements', icon: 'CreditCard' } } },
+        { resource: { model: getModelByName('Stage'), client: prisma }, options: { navigation: { name: 'Gestion Paiements', icon: 'CreditCard' } } },
+        { resource: { model: getModelByName('StageParticipant'), client: prisma }, options: { navigation: { name: 'Gestion Paiements', icon: 'CreditCard' } } },
+        { resource: { model: getModelByName('StagePayment'), client: prisma }, options: { navigation: { name: 'Gestion Paiements', icon: 'CreditCard' } } },
       ],
       locale: {
         language: 'fr',
@@ -129,6 +134,11 @@ const startServer = async () => {
             Annotation: 'Annotations',
             Evaluation: 'Évaluations',
             Message: 'Messages',
+            Licence: 'Licences',
+            LicencePayment: 'Paiements Licences',
+            Stage: 'Stages',
+            StageParticipant: 'Participants',
+            StagePayment: 'Paiements Stages',
           },
           resources: {
             User: {
