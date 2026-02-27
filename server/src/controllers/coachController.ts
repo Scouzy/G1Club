@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/authMiddleware';
 import prisma from '../utils/prisma';
 import bcrypt from 'bcryptjs';
+import * as XLSX from 'xlsx';
 
 // Create Coach (Admin only)
 export const createCoach = async (req: AuthRequest, res: Response) => {
@@ -214,3 +215,121 @@ export const getCoaches = async (req: AuthRequest, res: Response) => {
         res.status(500).json({ message: 'Erreur serveur' });
     }
 }
+
+// Export Coaches — ADMIN only
+export const exportCoaches = async (req: AuthRequest, res: Response) => {
+  try {
+    const clubId = req.user?.clubId;
+    const coaches = await prisma.coach.findMany({
+      where: clubId ? { user: { clubId } } : undefined,
+      include: {
+        user: { select: { name: true, email: true } },
+        categories: true,
+      },
+    });
+
+    const rows = coaches.map(c => ({
+      Nom:            c.user.name,
+      Email:          c.user.email,
+      Téléphone:      c.phone         ?? '',
+      Adresse:        c.address       ?? '',
+      Qualifications: c.qualifications ?? '',
+      Expérience:     c.experience    ?? '',
+      Spécialités:    c.specialties   ?? '',
+      Bio:            c.bio           ?? '',
+      Catégories:     (c.categories ?? []).map(cat => cat.name).join(', '),
+    }));
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb, ws, 'Coachs');
+
+    const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    res.setHeader('Content-Disposition', 'attachment; filename="coachs.xlsx"');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(buf);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+};
+
+// Import Coaches — ADMIN only
+export const importCoaches = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: 'Fichier manquant' });
+    const clubId = req.user?.clubId;
+
+    const wb = XLSX.read(req.file.buffer, { type: 'buffer' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json<Record<string, any>>(ws, { defval: '' });
+
+    const normalize = (s: string) => s.trim().toLowerCase();
+
+    const alias = (row: Record<string, any>, ...keys: string[]): string => {
+      for (const k of keys) {
+        const found = Object.keys(row).find(rk => normalize(rk) === normalize(k));
+        if (found && row[found] !== '') return String(row[found]).trim();
+      }
+      return '';
+    };
+
+    const results = { created: 0, skipped: 0, errors: [] as string[] };
+    const seenEmails = new Set<string>();
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const lineNum = i + 2;
+
+      const name  = alias(row, 'nom', 'name', 'prénom nom', 'prenom nom');
+      const email = alias(row, 'email', 'e-mail', 'mail', 'courriel');
+
+      if (!name || !email) {
+        results.errors.push(`Ligne ${lineNum} : Nom et Email requis`);
+        continue;
+      }
+
+      const emailLow = normalize(email);
+      if (seenEmails.has(emailLow)) {
+        results.errors.push(`Ligne ${lineNum} : Email en doublon dans le fichier (${email})`);
+        results.skipped++;
+        continue;
+      }
+      seenEmails.add(emailLow);
+
+      const existing = await prisma.user.findUnique({ where: { email } });
+      if (existing) {
+        results.errors.push(`Ligne ${lineNum} : Email déjà utilisé (${email})`);
+        results.skipped++;
+        continue;
+      }
+
+      const phone          = alias(row, 'téléphone', 'telephone', 'tel', 'phone');
+      const address        = alias(row, 'adresse', 'address');
+      const qualifications = alias(row, 'qualifications', 'diplomes', 'diplômes');
+      const experience     = alias(row, 'expérience', 'experience');
+      const specialties    = alias(row, 'spécialités', 'specialites', 'specialties');
+      const bio            = alias(row, 'bio', 'biographie');
+
+      const rawPwd = alias(row, 'mot de passe', 'password', 'mdp') || 'ChangeMe123!';
+      const hashedPassword = await bcrypt.hash(rawPwd, 10);
+
+      try {
+        const user = await prisma.user.create({
+          data: { name, email, password: hashedPassword, role: 'COACH', clubId: clubId ?? undefined },
+        });
+        await prisma.coach.create({
+          data: { userId: user.id, phone, address, qualifications, experience, specialties, bio },
+        });
+        results.created++;
+      } catch (err) {
+        results.errors.push(`Ligne ${lineNum} : Erreur création (${email})`);
+      }
+    }
+
+    res.json(results);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erreur lors de l\'import' });
+  }
+};

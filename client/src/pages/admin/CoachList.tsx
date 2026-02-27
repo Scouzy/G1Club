@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { getCoaches, createCoach, deleteCoach, updateCoachProfile, updateCoachCategories, Coach, CreateCoachData } from '../../services/coachService';
 import { getCategories, Category } from '../../services/categoryService';
-import { User, Phone, MapPin, Star, Plus, Trash2, X, Pencil, Camera, Layers } from 'lucide-react';
+import { User, Phone, MapPin, Star, Plus, Trash2, X, Pencil, Camera, Layers, Download, Upload, CheckCircle, AlertCircle } from 'lucide-react';
 import ClubBanner from '../../components/ClubBanner';
+import api from '../../lib/axios';
 
 const EMPTY_FORM: CreateCoachData = {
   name: '', email: '', password: '',
@@ -15,6 +16,12 @@ interface EditForm {
 }
 
 const EMPTY_EDIT: EditForm = { phone: '', address: '', qualifications: '', experience: '', bio: '', specialties: '', photoUrl: '' };
+
+interface ImportResult {
+  created: number;
+  skipped: number;
+  errors: string[];
+}
 
 const CoachList: React.FC = () => {
   const [coaches, setCoaches] = useState<Coach[]>([]);
@@ -32,6 +39,9 @@ const CoachList: React.FC = () => {
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState('');
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
 
   useEffect(() => {
     loadCoaches();
@@ -130,6 +140,45 @@ const CoachList: React.FC = () => {
     }
   };
 
+  const handleExport = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${(api.defaults.baseURL ?? '')}coaches/export`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'coachs.xlsx';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    setImportResult(null);
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const res = await api.post<ImportResult>('/coaches/import', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setImportResult(res.data);
+      if (res.data.created > 0) await loadCoaches();
+    } catch (err: any) {
+      setImportResult({ created: 0, skipped: 0, errors: [err?.response?.data?.message || 'Erreur import'] });
+    } finally {
+      setImporting(false);
+      if (importInputRef.current) importInputRef.current.value = '';
+    }
+  };
+
   const field = (key: keyof CreateCoachData, label: string, type = 'text', required = false) => (
     <div>
       <label className="block text-xs font-medium text-muted-foreground mb-1">
@@ -153,10 +202,24 @@ const CoachList: React.FC = () => {
     <div className="p-6 space-y-6">
       <ClubBanner />
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-foreground">Coachs</h1>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm text-muted-foreground">{coaches.length} entraîneur{coaches.length > 1 ? 's' : ''}</span>
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-2 px-3 py-2 rounded-md border border-border text-sm font-medium text-foreground hover:bg-muted"
+          >
+            <Download size={15} /> Exporter
+          </button>
+          <button
+            onClick={() => importInputRef.current?.click()}
+            disabled={importing}
+            className="flex items-center gap-2 px-3 py-2 rounded-md border border-border text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
+          >
+            <Upload size={15} /> {importing ? 'Import...' : 'Importer'}
+          </button>
+          <input ref={importInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImport} />
           <button
             onClick={() => { setShowForm(true); setFormError(''); }}
             className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
@@ -165,6 +228,26 @@ const CoachList: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Import result banner */}
+      {importResult && (
+        <div className={`rounded-xl border p-4 text-sm ${
+          importResult.errors.length > 0 ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400' : 'bg-green-500/10 border-green-500/30 text-green-400'
+        }`}>
+          <div className="flex items-center gap-2 font-semibold mb-1">
+            {importResult.errors.length === 0
+              ? <><CheckCircle size={15} /> Import réussi</>  
+              : <><AlertCircle size={15} /> Import terminé avec avertissements</>}
+          </div>
+          <p>{importResult.created} créé{importResult.created > 1 ? 's' : ''} · {importResult.skipped} ignoré{importResult.skipped > 1 ? 's' : ''}</p>
+          {importResult.errors.length > 0 && (
+            <ul className="mt-2 space-y-0.5 text-xs opacity-80 list-disc list-inside">
+              {importResult.errors.map((e, i) => <li key={i}>{e}</li>)}
+            </ul>
+          )}
+          <button onClick={() => setImportResult(null)} className="mt-2 text-xs underline opacity-70 hover:opacity-100">Fermer</button>
+        </div>
+      )}
 
       {/* Create form modal */}
       {showForm && (
