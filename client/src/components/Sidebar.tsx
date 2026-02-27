@@ -130,6 +130,16 @@ const Sidebar: React.FC = () => {
     () => localStorage.getItem('activeClubId')
   );
   const [unreadCount, setUnreadCount] = useState(0);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) { setAvatarUrl(null); return; }
+    if (user.role === 'SPORTIF') {
+      api.get('/sportifs/me').then(r => setAvatarUrl(r.data?.photoUrl ?? null)).catch(() => {});
+    } else {
+      setAvatarUrl((user as any).photoUrl ?? null);
+    }
+  }, [user?.id, user?.role]);
 
   useEffect(() => {
     if (isSuperAdmin) {
@@ -304,8 +314,11 @@ const Sidebar: React.FC = () => {
         <div className={`border-b border-white/10 shrink-0 ${collapsed ? 'py-3 flex justify-center' : 'px-4 py-3'}`}>
           {collapsed ? (
             <div className="relative group">
-              <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm cursor-default">
-                {user?.name?.charAt(0) || 'U'}
+              <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm cursor-default overflow-hidden">
+                {avatarUrl
+                  ? <img src={avatarUrl} alt={user?.name || ''} className="h-full w-full object-cover" />
+                  : (user?.name?.charAt(0) || 'U')
+                }
               </div>
               <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 hidden group-hover:block z-50 bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap shadow-lg border border-white/10">
                 {user?.name} — {user?.role === 'ADMIN' ? 'Dirigeant' : user?.role === 'COACH' ? 'Entraîneur' : 'Sportif'}
@@ -314,8 +327,11 @@ const Sidebar: React.FC = () => {
           ) : (
             <>
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0">
-                  {user?.name?.charAt(0) || 'U'}
+                <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0 overflow-hidden">
+                  {avatarUrl
+                    ? <img src={avatarUrl} alt={user?.name || ''} className="h-full w-full object-cover" />
+                    : (user?.name?.charAt(0) || 'U')
+                  }
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-white truncate">{user?.name}</p>
