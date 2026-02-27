@@ -30,7 +30,7 @@ const EventsPage: React.FC = () => {
 
   // Event form
   const [showEventForm, setShowEventForm] = useState(false);
-  const [newEvent, setNewEvent] = useState({ date: '', time: '10:00', duration: 90, type: 'Match', location: '', opponent: '', objectives: '' });
+  const [newEvent, setNewEvent] = useState({ date: '', startTime: '10:00', endTime: '12:00', type: 'Match', location: '', opponent: '', objectives: '' });
   const [savingEvent, setSavingEvent] = useState(false);
 
   const now = new Date();
@@ -115,10 +115,13 @@ const EventsPage: React.FC = () => {
     if (!selectedCategory) return;
     setSavingEvent(true);
     try {
-      const dateTime = new Date(`${newEvent.date}T${newEvent.time}`);
+      const dateTime = new Date(`${newEvent.date}T${newEvent.startTime}`);
+      const [sh, sm] = newEvent.startTime.split(':').map(Number);
+      const [eh, em] = newEvent.endTime.split(':').map(Number);
+      const duration = Math.max(0, (eh * 60 + em) - (sh * 60 + sm));
       await createTraining({
         date: dateTime.toISOString(),
-        duration: newEvent.duration,
+        duration,
         type: newEvent.type,
         location: newEvent.location,
         opponent: newEvent.opponent,
@@ -127,7 +130,7 @@ const EventsPage: React.FC = () => {
       });
       const trains = await getTrainings();
       setTrainings(trains);
-      setNewEvent({ date: '', time: '10:00', duration: 90, type: 'Match', location: '', opponent: '', objectives: '' });
+      setNewEvent({ date: '', startTime: '10:00', endTime: '12:00', type: 'Match', location: '', opponent: '', objectives: '' });
       setShowEventForm(false);
     } catch (e) {
       console.error(e);
@@ -360,9 +363,9 @@ const EventsPage: React.FC = () => {
                     value={newEvent.date} onChange={e => setNewEvent(p => ({ ...p, date: e.target.value }))} />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">Heure</label>
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Heure de début</label>
                   <input type="time" required className="w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm"
-                    value={newEvent.time} onChange={e => setNewEvent(p => ({ ...p, time: e.target.value }))} />
+                    value={newEvent.startTime} onChange={e => setNewEvent(p => ({ ...p, startTime: e.target.value }))} />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-muted-foreground mb-1">Type</label>
@@ -376,9 +379,9 @@ const EventsPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">Durée (min)</label>
-                  <input type="number" min={15} className="w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm"
-                    value={newEvent.duration} onChange={e => setNewEvent(p => ({ ...p, duration: parseInt(e.target.value) }))} />
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Heure de fin</label>
+                  <input type="time" required className="w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm"
+                    value={newEvent.endTime} onChange={e => setNewEvent(p => ({ ...p, endTime: e.target.value }))} />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-muted-foreground mb-1">Lieu</label>
