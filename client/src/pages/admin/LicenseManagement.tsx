@@ -70,6 +70,7 @@ const LicenseManagement: React.FC = () => {
   const [error, setError] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [paymentsLicence, setPaymentsLicence] = useState<Licence | null>(null);
+  const [renewCategoryId, setRenewCategoryId] = useState<string | null>(null);
 
   useEffect(() => {
     loadAll();
@@ -107,8 +108,13 @@ const LicenseManagement: React.FC = () => {
     const today = new Date();
     const year = today.getMonth() >= 8 ? today.getFullYear() : today.getFullYear() - 1;
     const nextSeason = year + 1;
-    const newStart = new Date(nextSeason, 8, 1);   // 1er septembre saison N+1
-    const newExpiry = new Date(nextSeason + 1, 5, 30); // 30 juin saison N+2
+    const newStart = new Date(nextSeason, 8, 1);
+    const newExpiry = new Date(nextSeason + 1, 5, 30);
+    // Catégorie suivante (triée par nom)
+    const sorted = [...categories].sort((a, b) => a.name.localeCompare(b.name));
+    const currentIdx = sorted.findIndex(c => c.id === l.sportif.category.id);
+    const nextCat = currentIdx >= 0 && currentIdx < sorted.length - 1 ? sorted[currentIdx + 1] : null;
+    setRenewCategoryId(nextCat ? nextCat.id : null);
     setForm({
       sportifId: l.sportif.id,
       number: l.number,
@@ -156,6 +162,12 @@ const LicenseManagement: React.FC = () => {
       } else {
         const res = await api.post<Licence>('/licences', form);
         setLicences(prev => [res.data, ...prev]);
+        // Renouvellement : mettre à jour la catégorie du sportif
+        if (renewCategoryId) {
+          await api.put(`/sportifs/${form.sportifId}`, { categoryId: renewCategoryId });
+          setRenewCategoryId(null);
+          await loadAll();
+        }
       }
       const statsRes = await api.get<LicenceStats>('/licences/stats');
       setStats(statsRes.data);
