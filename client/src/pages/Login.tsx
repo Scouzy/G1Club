@@ -86,6 +86,13 @@ const Login: React.FC = () => {
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-md space-y-6">
 
+        {/* Back to landing */}
+        <div>
+          <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft size={15} /> Retour à l'accueil
+          </Link>
+        </div>
+
         {/* Logo */}
         <div className="text-center">
           <div
