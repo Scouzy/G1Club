@@ -136,6 +136,8 @@ const Sidebar: React.FC = () => {
     if (!user) { setAvatarUrl(null); return; }
     if (user.role === 'SPORTIF') {
       api.get('/sportifs/me').then(r => setAvatarUrl(r.data?.photoUrl ?? null)).catch(() => {});
+    } else if (user.role === 'COACH') {
+      api.get('/coaches/me').then(r => setAvatarUrl(r.data?.photoUrl ?? null)).catch(() => {});
     } else {
       setAvatarUrl((user as any).photoUrl ?? null);
     }
