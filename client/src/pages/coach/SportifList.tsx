@@ -263,6 +263,22 @@ const SportifList: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {/* Import/Export always visible for coach and admin */}
+          {categoryTab === 'sportifs' && (
+            <>
+              <button onClick={handleExport}
+                className="flex items-center gap-2 px-3 py-2 rounded-md border border-border text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                title="Exporter la liste en Excel">
+                <Download size={15} /> Exporter
+              </button>
+              <label className={`flex items-center gap-2 px-3 py-2 rounded-md border border-border text-sm cursor-pointer transition-colors ${
+                importing ? 'opacity-50 cursor-not-allowed' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              }`} title="Importer depuis Excel/CSV">
+                <Upload size={15} /> {importing ? 'Import...' : 'Importer'}
+                <input ref={importFileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImport} disabled={importing} />
+              </label>
+            </>
+          )}
           {selectedCategoryObj && !canEdit(selectedCategoryObj.id) ? (
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground border border-border rounded-md px-3 py-2">
               <Lock size={12} /> Lecture seule
@@ -276,21 +292,6 @@ const SportifList: React.FC = () => {
                 >
                   <Plus size={16} /> Nouvelle équipe
                 </button>
-              )}
-              {categoryTab === 'sportifs' && (
-                <>
-                  <button onClick={handleExport}
-                    className="flex items-center gap-2 px-3 py-2 rounded-md border border-border text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                    title="Exporter la liste en Excel">
-                    <Download size={15} /> Exporter
-                  </button>
-                  <label className={`flex items-center gap-2 px-3 py-2 rounded-md border border-border text-sm cursor-pointer transition-colors ${
-                    importing ? 'opacity-50 cursor-not-allowed' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`} title="Importer depuis Excel/CSV">
-                    <Upload size={15} /> {importing ? 'Import...' : 'Importer'}
-                    <input ref={importFileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImport} disabled={importing} />
-                  </label>
-                </>
               )}
               {categoryTab === 'sportifs' && canEdit(selectedCategoryObj?.id ?? '') && (
                 <button

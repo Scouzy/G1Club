@@ -219,6 +219,8 @@ export const deleteSportif = async (req: AuthRequest, res: Response) => {
 export const importSportifs = async (req: AuthRequest, res: Response) => {
   try {
     const clubId = req.user?.clubId;
+    const userId = req.user?.id;
+    const role = req.user?.role;
     if (!req.file) return res.status(400).json({ message: 'Aucun fichier fourni' });
 
     const workbook = XLSX.read(req.file.buffer, { type: 'buffer', cellDates: true });
@@ -227,9 +229,25 @@ export const importSportifs = async (req: AuthRequest, res: Response) => {
 
     if (rows.length === 0) return res.status(400).json({ message: 'Fichier vide ou format invalide' });
 
-    // Fetch all categories for this club
+    // For COACH: restrict to their assigned categories only
+    let allowedCategoryIds: string[] | null = null;
+    if (role === 'COACH') {
+      const coach = await prisma.coach.findUnique({
+        where: { userId },
+        include: { categories: { select: { id: true } } }
+      });
+      allowedCategoryIds = (coach?.categories || []).map(c => c.id);
+      if (allowedCategoryIds.length === 0) {
+        return res.status(403).json({ message: 'Aucune catégorie assignée à ce coach' });
+      }
+    }
+
+    // Fetch categories scoped to club (and coach if applicable)
     const categories = await prisma.category.findMany({
-      where: clubId ? { clubId } : {}
+      where: {
+        ...(clubId ? { clubId } : {}),
+        ...(allowedCategoryIds ? { id: { in: allowedCategoryIds } } : {}),
+      }
     });
     const catMap = new Map(categories.map(c => [c.name.trim().toLowerCase(), c.id]));
 
@@ -306,9 +324,24 @@ export const importSportifs = async (req: AuthRequest, res: Response) => {
 export const exportSportifs = async (req: AuthRequest, res: Response) => {
   try {
     const clubId = req.user?.clubId;
+    const userId = req.user?.id;
+    const role = req.user?.role;
+
+    // For COACH: restrict to their assigned categories only
+    let allowedCategoryIds: string[] | null = null;
+    if (role === 'COACH') {
+      const coach = await prisma.coach.findUnique({
+        where: { userId },
+        include: { categories: { select: { id: true } } }
+      });
+      allowedCategoryIds = (coach?.categories || []).map(c => c.id);
+    }
 
     const sportifs = await prisma.sportif.findMany({
-      where: clubId ? { category: { clubId } } : {},
+      where: {
+        ...(clubId ? { category: { clubId } } : {}),
+        ...(allowedCategoryIds ? { categoryId: { in: allowedCategoryIds } } : {}),
+      },
       include: { category: true },
       orderBy: [{ category: { name: 'asc' } }, { lastName: 'asc' }],
     });
