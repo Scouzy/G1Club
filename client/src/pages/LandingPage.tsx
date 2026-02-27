@@ -4,10 +4,12 @@ import {
   Users, Trophy, Calendar, MessageSquare, BarChart2, Shield,
   ChevronRight, Star, CheckCircle, Menu, X, ArrowRight,
   Layers, Activity, ClipboardList, Building2, Zap, Globe,
+  CreditCard, RefreshCw, Wallet, BadgeCheck,
 } from 'lucide-react';
 
 const NAV_LINKS = [
   { label: 'Fonctionnalités', href: '#features' },
+  { label: 'Paiements', href: '#payments' },
   { label: 'Pour qui ?', href: '#audience' },
   { label: 'Avantages', href: '#benefits' },
   { label: 'Témoignages', href: '#testimonials' },
@@ -19,6 +21,10 @@ const FEATURES = [
   { icon: Trophy, title: 'Suivi des performances', desc: 'Évaluations, annotations et statistiques de progression pour chaque sportif. Identifiez les talents.', color: 'from-yellow-500 to-orange-500' },
   { icon: Calendar, title: 'Planning & Événements', desc: 'Organisez vos entraînements, matchs et événements. Créneaux horaires et gestion des présences.', color: 'from-green-500 to-emerald-600' },
   { icon: MessageSquare, title: 'Messagerie interne', desc: 'Communiquez directement entre coachs, sportifs et dirigeants. Échanges sécurisés au sein de votre club.', color: 'from-purple-500 to-violet-600' },
+  { icon: BadgeCheck, title: 'Gestion des licences', desc: 'Créez, renouvelez et suivez les licences fédérales de chaque sportif. Alertes d\'expiration et renouvellement en un clic.', color: 'from-teal-500 to-cyan-600' },
+  { icon: CreditCard, title: 'Suivi des paiements', desc: 'Gérez les paiements en plusieurs versements pour les licences et stages. Tableau de bord financier clair et historique complet.', color: 'from-green-600 to-emerald-700' },
+  { icon: Wallet, title: 'Gestion des stages', desc: 'Organisez vos stages payants : dates, horaires, lieu, inscriptions participants et échéanciers de paiement intégrés.', color: 'from-orange-500 to-amber-600' },
+  { icon: RefreshCw, title: 'Renouvellement auto', desc: 'Renouvelez une licence en un clic. Dates calées automatiquement sur la saison sportive (1er sept → 30 juin).', color: 'from-pink-500 to-rose-600' },
   { icon: BarChart2, title: 'Statistiques & Rapports', desc: 'Tableau de bord analytique : effectifs, présences, catégories actives et tendances en temps réel.', color: 'from-pink-500 to-rose-600' },
   { icon: Layers, title: 'Gestion des catégories', desc: 'Organisez vos équipes par catégories d\'âge (U6 à Séniors). Affectation automatique et flexible.', color: 'from-cyan-500 to-teal-600' },
   { icon: Shield, title: 'Multi-clubs & Isolation', desc: 'Architecture multi-tenant : chaque club dispose de son espace totalement isolé. Données privées.', color: 'from-indigo-500 to-blue-700' },
@@ -29,7 +35,7 @@ const ROLES = [
   {
     icon: Building2, title: 'Dirigeants de club', gradient: 'from-blue-600 to-indigo-700',
     desc: 'Pilotez votre club depuis un tableau de bord complet. Gérez les utilisateurs, catégories et suivez les indicateurs clés.',
-    perks: ['Vue globale du club', 'Gestion des accès', 'Paramètres personnalisés', 'Statistiques avancées'],
+    perks: ['Vue globale du club', 'Gestion des accès', 'Licences & renouvellement', 'Stages & paiements', 'Suivi financier multi-versements', 'Statistiques avancées'],
   },
   {
     icon: Trophy, title: 'Coachs & Entraîneurs', gradient: 'from-green-600 to-emerald-700',
@@ -68,7 +74,7 @@ const PRICING = [
   {
     name: 'Pro', price: '29€', period: '/ mois', highlight: true,
     desc: 'Pour les clubs en pleine croissance',
-    features: ['1 club', 'Membres illimités', 'Toutes les fonctionnalités', 'Statistiques avancées', 'Support prioritaire', 'Personnalisation du club'],
+    features: ['1 club', 'Membres illimités', 'Toutes les fonctionnalités', 'Gestion licences & renouvellements', 'Stages & suivi paiements', 'Statistiques avancées', 'Support prioritaire'],
     cta: 'Commencer l\'essai',
   },
   {
@@ -215,6 +221,79 @@ const LandingPage: React.FC = () => {
                 <p className="text-sm text-white/50 leading-relaxed">{f.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PAYMENTS */}
+      <section id="payments" className="py-24 px-6 bg-white/2">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <p className="text-green-400 text-sm font-semibold uppercase tracking-widest mb-3">Nouveau</p>
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-4">Gestion financière intégrée</h2>
+            <p className="text-white/50 text-lg max-w-2xl mx-auto">Licences, stages, versements… tout le suivi financier de votre club en un seul endroit. Fini les tableurs Excel !</p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            {/* Licences */}
+            <div className="relative overflow-hidden rounded-2xl border border-teal-500/20 bg-gradient-to-br from-teal-600/10 to-cyan-600/5 p-8">
+              <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-teal-500/10 blur-3xl -translate-y-1/4 translate-x-1/4" />
+              <div className="relative z-10">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center mb-5 shadow-lg">
+                  <BadgeCheck size={22} className="text-white" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">Licences fédérales</h3>
+                <p className="text-white/50 text-sm mb-6 leading-relaxed">Gérez les licences de tous vos sportifs avec alertes d'expiration automatiques et renouvellement calé sur la saison sportive.</p>
+                <ul className="space-y-2.5">
+                  {['Création & modification des licences par sportif', 'Alerte visuelle 30 jours avant expiration', 'Renouvellement en 1 clic (1er sept → 30 juin)', 'Paiement en 1 à 6 versements', 'Historique complet par licence'].map(item => (
+                    <li key={item} className="flex items-center gap-2.5 text-sm text-white/70">
+                      <CheckCircle size={14} className="text-teal-400 shrink-0" />{item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Stages */}
+            <div className="relative overflow-hidden rounded-2xl border border-orange-500/20 bg-gradient-to-br from-orange-600/10 to-amber-600/5 p-8">
+              <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-orange-500/10 blur-3xl -translate-y-1/4 translate-x-1/4" />
+              <div className="relative z-10">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center mb-5 shadow-lg">
+                  <Wallet size={22} className="text-white" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">Stages payants</h3>
+                <p className="text-white/50 text-sm mb-6 leading-relaxed">Organisez vos stages avec gestion des inscriptions, suivi des présences et échéanciers de paiement pour chaque participant.</p>
+                <ul className="space-y-2.5">
+                  {['Création de stages avec dates & horaires précis', 'Inscription des sportifs par stage', 'Génération automatique des échéanciers', 'Suivi individuel payé / restant dû', 'Alerte automatique paiements en retard'].map(item => (
+                    <li key={item} className="flex items-center gap-2.5 text-sm text-white/70">
+                      <CheckCircle size={14} className="text-orange-400 shrink-0" />{item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Payments flow illustration */}
+          <div className="rounded-2xl border border-white/8 bg-white/3 p-8">
+            <p className="text-center text-sm font-semibold text-white/40 uppercase tracking-widest mb-8">Comment ça fonctionne</p>
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              {[
+                { step: '01', icon: BadgeCheck, title: 'Créer la licence ou le stage', color: 'text-teal-400', bg: 'bg-teal-500/10' },
+                { step: '02', icon: Users, title: 'Inscrire le(s) sportif(s)', color: 'text-blue-400', bg: 'bg-blue-500/10' },
+                { step: '03', icon: CreditCard, title: 'Définir l\'échéancier', color: 'text-purple-400', bg: 'bg-purple-500/10' },
+                { step: '04', icon: CheckCircle, title: 'Marquer les paiements reçus', color: 'text-green-400', bg: 'bg-green-500/10' },
+              ].map((s, i) => (
+                <div key={s.step} className="flex flex-col items-center text-center gap-3 relative">
+                  {i < 3 && <div className="hidden sm:block absolute top-6 left-[60%] w-[80%] h-px bg-white/10" />}
+                  <div className={`h-12 w-12 rounded-full ${s.bg} flex items-center justify-center`}>
+                    <s.icon size={20} className={s.color} />
+                  </div>
+                  <span className="text-xs font-bold text-white/30">{s.step}</span>
+                  <p className="text-sm font-medium text-white/70">{s.title}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
