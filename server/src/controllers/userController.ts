@@ -186,6 +186,7 @@ export const importUsers = async (req: AuthRequest, res: Response) => {
     };
 
     const results = { created: 0, skipped: 0, errors: [] as string[] };
+    const seenEmails = new Set<string>();
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
@@ -207,8 +208,19 @@ export const importUsers = async (req: AuthRequest, res: Response) => {
       if (!email) { results.errors.push(`Ligne ${lineNum} : Email manquant`); results.skipped++; continue; }
       if (!password) { results.errors.push(`Ligne ${lineNum} : Mot de passe manquant`); results.skipped++; continue; }
 
+      const emailKey = normalize(email);
+
+      // 1. Intra-file duplicate
+      if (seenEmails.has(emailKey)) {
+        results.errors.push(`Ligne ${lineNum} : Doublon dans le fichier — "${email}" déjà présent`);
+        results.skipped++;
+        continue;
+      }
+      seenEmails.add(emailKey);
+
+      // 2. Database duplicate
       const existing = await prisma.user.findUnique({ where: { email } });
-      if (existing) { results.errors.push(`Ligne ${lineNum} : Email "${email}" déjà utilisé`); results.skipped++; continue; }
+      if (existing) { results.errors.push(`Ligne ${lineNum} : Email "${email}" déjà utilisé dans l'application`); results.skipped++; continue; }
 
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = await prisma.user.create({

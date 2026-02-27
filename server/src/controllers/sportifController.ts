@@ -270,6 +270,8 @@ export const importSportifs = async (req: AuthRequest, res: Response) => {
     };
 
     const results = { created: 0, skipped: 0, errors: [] as string[] };
+    // Track keys seen in this file to avoid intra-file duplicates
+    const seenInFile = new Set<string>();
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
@@ -296,6 +298,32 @@ export const importSportifs = async (req: AuthRequest, res: Response) => {
       if (birthDateRaw) {
         const d = new Date(birthDateRaw);
         if (!isNaN(d.getTime())) birthDate = d;
+      }
+
+      // Duplicate key: firstName + lastName + birthDate (or fallback to name only)
+      const dupKey = `${normalize(firstName)}|${normalize(lastName)}|${birthDate ? birthDate.toISOString().slice(0, 10) : ''}`;
+
+      // 1. Intra-file duplicate
+      if (seenInFile.has(dupKey)) {
+        results.errors.push(`Ligne ${i + 2} : Doublon dans le fichier — "${firstName} ${lastName}" déjà présent`);
+        results.skipped++;
+        continue;
+      }
+      seenInFile.add(dupKey);
+
+      // 2. Database duplicate — compare via normalized dupKey against existing sportifs
+      const existingCheck = await prisma.sportif.findFirst({
+        where: {
+          firstName: firstName,
+          lastName:  lastName,
+          ...(birthDate ? { birthDate } : {}),
+        },
+        select: { id: true },
+      });
+      if (existingCheck) {
+        results.errors.push(`Ligne ${i + 2} : "${firstName} ${lastName}" existe déjà dans l'application`);
+        results.skipped++;
+        continue;
       }
 
       await prisma.sportif.create({
