@@ -3,7 +3,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useNavigate, Link } from 'react-router-dom';
 import { useClub } from '../context/ClubContext';
 import api from '../lib/axios';
-import { Search, ChevronRight, ArrowLeft, MailCheck } from 'lucide-react';
+import { Search, ChevronRight, ArrowLeft, MailCheck, Eye, EyeOff } from 'lucide-react';
 
 interface ClubResult {
   id: string;
@@ -21,6 +21,7 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [emailNotVerified, setEmailNotVerified] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
@@ -197,13 +198,24 @@ const Login: React.FC = () => {
 
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1.5">Mot de passe</label>
-                <input
-                  id="password" type="password" autoComplete="current-password" required
-                  className="block w-full rounded-md border border-input bg-background text-foreground px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                />
+                <div className="relative">
+                  <input
+                    id="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" required
+                    className="block w-full rounded-md border border-input bg-background text-foreground px-3 py-2.5 pr-10 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    tabIndex={-1}
+                    aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
 
               {error && !emailNotVerified && <p className="text-destructive text-sm">{error}</p>}
