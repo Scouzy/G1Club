@@ -140,22 +140,14 @@ const CoachList: React.FC = () => {
     }
   };
 
-  const handleExport = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${(api.defaults.baseURL ?? '')}coaches/export`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'coachs.xlsx';
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error(err);
-    }
+  const handleExport = () => {
+    const token = localStorage.getItem('token') ?? '';
+    const a = document.createElement('a');
+    a.href = `/api/coaches/export?token=${encodeURIComponent(token)}`;
+    a.download = 'coachs.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
