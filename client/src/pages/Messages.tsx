@@ -177,9 +177,11 @@ const Messages: React.FC = () => {
                 Annonce
               </button>
             )}
-            <button onClick={openNewChat} className="text-primary hover:bg-muted p-2 rounded-full">
-              <PlusIcon />
-            </button>
+            {user?.role !== 'SPORTIF' && (
+              <button onClick={openNewChat} className="text-primary hover:bg-muted p-2 rounded-full">
+                <PlusIcon />
+              </button>
+            )}
           </div>
         </div>
         <div className="flex-1 overflow-y-auto">
