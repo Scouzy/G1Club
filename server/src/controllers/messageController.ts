@@ -268,6 +268,25 @@ export const getUnreadCount = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// Get unread count grouped by sender — for contact-list views (Coach, Sportif)
+export const getUnreadPerSender = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ message: 'Non autorisé' });
+    const rows = await prisma.message.groupBy({
+      by: ['senderId'],
+      where: { receiverId: req.user.id, isRead: false },
+      _count: { id: true },
+    });
+    // Return as { [senderId]: count }
+    const result: Record<string, number> = {};
+    rows.forEach(r => { result[r.senderId] = r._count.id; });
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+};
+
 // Get conversation with a specific user
 export const getMessages = async (req: AuthRequest, res: Response) => {
   try {
@@ -352,7 +371,18 @@ export const getConversations = async (req: AuthRequest, res: Response) => {
             }
         });
 
-        res.json(Array.from(conversations.values()));
+        // Compute unread count per contact
+        const conversationList = Array.from(conversations.values());
+        const unreadCounts = await Promise.all(
+            conversationList.map(conv =>
+                prisma.message.count({
+                    where: { senderId: conv.contact.id, receiverId: currentUserId, isRead: false }
+                })
+            )
+        );
+        const result = conversationList.map((conv, i) => ({ ...conv, unreadCount: unreadCounts[i] }));
+
+        res.json(result);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Erreur serveur' });

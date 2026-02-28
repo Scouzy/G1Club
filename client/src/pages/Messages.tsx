@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Conversation, Message, getConversations, getMessages, sendMessage, UserBasic } from '../services/messageService';
 import { getUsers } from '../services/userService';
@@ -29,18 +29,28 @@ const Messages: React.FC = () => {
   const [annSending, setAnnSending] = useState(false);
   const [annSuccess, setAnnSuccess] = useState(false);
 
+  const activeContactRef = useRef<UserBasic | null>(null);
+  activeContactRef.current = activeContact;
+
   useEffect(() => {
     loadConversations();
+    // Poll conversations + unread every 5s regardless of open thread
+    const interval = setInterval(() => {
+      loadConversations();
+    }, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
     if (activeContact) {
       loadMessages(activeContact.id);
-      // Ideally setup websocket or polling here
-      const interval = setInterval(() => loadMessages(activeContact.id), 5000);
+      const interval = setInterval(() => {
+        const c = activeContactRef.current;
+        if (c) loadMessages(c.id);
+      }, 4000);
       return () => clearInterval(interval);
     }
-  }, [activeContact]);
+  }, [activeContact?.id]);
 
   useEffect(() => {
     scrollToBottom();
@@ -66,6 +76,8 @@ const Messages: React.FC = () => {
       const data = await getMessages(userId);
       setMessages(data);
       window.dispatchEvent(new CustomEvent('messages-read'));
+      // Mark conversation as read locally
+      setConversations(prev => prev.map(c => c.contact.id === userId ? { ...c, unreadCount: 0 } : c));
     } catch (error) {
       console.error('Error loading messages', error);
     }
@@ -165,21 +177,28 @@ const Messages: React.FC = () => {
               key={conv.contact.id}
               onClick={() => setActiveContact(conv.contact)}
               className={`p-4 border-b border-border cursor-pointer hover:bg-muted/50 transition-colors ${
-                activeContact?.id === conv.contact.id ? 'bg-muted' : ''
+                activeContact?.id === conv.contact.id ? 'bg-muted' : conv.unreadCount > 0 ? 'bg-primary/5' : ''
               }`}
             >
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 bg-muted rounded-full flex items-center justify-center">
-                  <User className="h-5 w-5 text-muted-foreground" />
+                <div className="relative">
+                  <div className="h-10 w-10 bg-muted rounded-full flex items-center justify-center">
+                    <User className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  {conv.unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                      {conv.unreadCount > 9 ? '9+' : conv.unreadCount}
+                    </span>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-baseline">
-                    <h3 className="text-sm font-medium text-foreground truncate">{conv.contact.name}</h3>
-                    <span className="text-xs text-muted-foreground">
+                    <h3 className={`text-sm truncate ${conv.unreadCount > 0 ? 'font-bold text-foreground' : 'font-medium text-foreground'}`}>{conv.contact.name}</h3>
+                    <span className="text-xs text-muted-foreground shrink-0 ml-1">
                         {new Date(conv.lastMessage.createdAt).toLocaleDateString('fr-FR')}
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground truncate">{conv.lastMessage.content}</p>
+                  <p className={`text-sm truncate ${conv.unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>{conv.lastMessage.content}</p>
                 </div>
               </div>
             </div>

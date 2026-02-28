@@ -1,5 +1,5 @@
 import express from 'express';
-import { sendMessage, getMessages, getConversations, sendCategoryMessage, getCategoryMessages, getContacts, sendTeamMessage, getTeamMessages, getUnreadCount } from '../controllers/messageController';
+import { sendMessage, getMessages, getConversations, sendCategoryMessage, getCategoryMessages, getContacts, sendTeamMessage, getTeamMessages, getUnreadCount, getUnreadPerSender } from '../controllers/messageController';
 import { authenticateToken } from '../middleware/authMiddleware';
 
 const router = express.Router();
@@ -8,6 +8,7 @@ router.use(authenticateToken);
 
 router.get('/contacts', getContacts);
 router.get('/unread-count', getUnreadCount);
+router.get('/unread-per-sender', getUnreadPerSender);
 router.post('/', sendMessage);
 router.get('/conversations', getConversations);
 router.post('/category/:categoryId', sendCategoryMessage);

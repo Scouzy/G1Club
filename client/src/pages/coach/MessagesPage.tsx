@@ -4,6 +4,7 @@ import {
   getContacts, getMessages, sendMessage,
   getCategoryMessages, sendCategoryMessage,
   getTeamMessages, sendTeamMessage,
+  getUnreadPerSender,
   Message, ContactsData, CategoryBasic, TeamBasic
 } from '../../services/messageService';
 import { Send, Users, User, Layers, ChevronLeft, Shield, ChevronDown } from 'lucide-react';
@@ -28,18 +29,46 @@ const MessagesPage: React.FC = () => {
   const bottomRef = useRef<HTMLDivElement>(null);
   const [coachesOpen, setCoachesOpen] = useState(true);
   const [sportifsOpen, setSportifsOpen] = useState(true);
+  const [unreadMap, setUnreadMap] = useState<Record<string, number>>({});
+
+  const loadUnread = () => {
+    getUnreadPerSender().then(setUnreadMap).catch(() => {});
+  };
 
   useEffect(() => {
     getContacts()
       .then(setContacts)
       .catch(console.error)
       .finally(() => setLoading(false));
+    loadUnread();
   }, []);
+
+  const activeThreadRef = React.useRef<Thread | null>(null);
+  activeThreadRef.current = activeThread;
 
   useEffect(() => {
     if (!activeThread) return;
     loadMessages(activeThread);
-  }, [activeThread]);
+
+    const interval = setInterval(() => {
+      const t = activeThreadRef.current;
+      if (!t) return;
+      // Silent poll: load messages without resetting unread (already 0 for active)
+      (async () => {
+        try {
+          let msgs: Message[];
+          if (t.type === 'category') msgs = await getCategoryMessages(t.id);
+          else if (t.type === 'team') msgs = await getTeamMessages(t.id);
+          else msgs = await getMessages(t.id);
+          setMessages(msgs);
+        } catch { /* silent */ }
+      })();
+      // Also refresh unread for other contacts
+      loadUnread();
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [activeThread?.id, activeThread?.type]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -52,7 +81,10 @@ const MessagesPage: React.FC = () => {
       else if (thread.type === 'team') msgs = await getTeamMessages(thread.id);
       else msgs = await getMessages(thread.id);
       setMessages(msgs);
-      if (thread.type === 'direct') window.dispatchEvent(new CustomEvent('messages-read'));
+      if (thread.type === 'direct') {
+        window.dispatchEvent(new CustomEvent('messages-read'));
+        setUnreadMap(prev => ({ ...prev, [thread.id]: 0 }));
+      }
     } catch (e) {
       console.error(e);
     }
@@ -186,23 +218,33 @@ const MessagesPage: React.FC = () => {
               <p className="px-4 pt-4 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                 <Shield size={11} /> Dirigeants
               </p>
-              {admins.map(admin => (
+              {admins.map(admin => {
+                const uc = unreadMap[admin.id] ?? 0;
+                return (
                 <button
                   key={`admin-${admin.id}`}
                   onClick={() => selectThread({ type: 'direct', id: admin.id, label: admin.name, sublabel: 'Dirigeant' })}
                   className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-muted/50 transition-colors text-left ${
-                    activeThread?.type === 'direct' && activeThread.id === admin.id ? 'bg-primary/10 border-r-2 border-primary' : ''
+                    activeThread?.type === 'direct' && activeThread.id === admin.id ? 'bg-primary/10 border-r-2 border-primary' : uc > 0 ? 'bg-primary/5' : ''
                   }`}
                 >
-                  <div className="h-8 w-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center shrink-0">
-                    <Shield size={14} className="text-purple-600 dark:text-purple-300" />
+                  <div className="relative shrink-0">
+                    <div className="h-8 w-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+                      <Shield size={14} className="text-purple-600 dark:text-purple-300" />
+                    </div>
+                    {uc > 0 && (
+                      <span className="absolute -top-1 -right-1 h-4 min-w-4 px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                        {uc > 9 ? '9+' : uc}
+                      </span>
+                    )}
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{admin.name}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className={`text-sm truncate ${uc > 0 ? 'font-bold text-foreground' : 'font-medium text-foreground'}`}>{admin.name}</p>
                     <p className="text-xs text-muted-foreground">Dirigeant</p>
                   </div>
                 </button>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -218,25 +260,35 @@ const MessagesPage: React.FC = () => {
               </button>
               {coachesOpen && (
                 <div>
-                  {coaches.map(coach => (
+                  {coaches.map(coach => {
+                    const uc = unreadMap[coach.user.id] ?? 0;
+                    return (
                     <button
                       key={`coach-${coach.id}`}
                       onClick={() => selectThread({ type: 'direct', id: coach.user.id, label: coach.user.name, sublabel: 'Coach' })}
                       className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-muted/50 transition-colors text-left ${
-                        activeThread?.type === 'direct' && activeThread.id === coach.user.id ? 'bg-primary/10 border-r-2 border-primary' : ''
+                        activeThread?.type === 'direct' && activeThread.id === coach.user.id ? 'bg-primary/10 border-r-2 border-primary' : uc > 0 ? 'bg-primary/5' : ''
                       }`}
                     >
-                      <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0">
-                        <Users size={14} className="text-blue-600 dark:text-blue-300" />
+                      <div className="relative shrink-0">
+                        <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                          <Users size={14} className="text-blue-600 dark:text-blue-300" />
+                        </div>
+                        {uc > 0 && (
+                          <span className="absolute -top-1 -right-1 h-4 min-w-4 px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                            {uc > 9 ? '9+' : uc}
+                          </span>
+                        )}
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{coach.user.name}</p>
+                      <div className="min-w-0 flex-1">
+                        <p className={`text-sm truncate ${uc > 0 ? 'font-bold text-foreground' : 'font-medium text-foreground'}`}>{coach.user.name}</p>
                         <p className="text-xs text-muted-foreground truncate">
                           {coach.categories.map(c => c.name).join(', ') || 'Coach'}
                         </p>
                       </div>
                     </button>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -254,23 +306,33 @@ const MessagesPage: React.FC = () => {
               </button>
               {sportifsOpen && (
                 <div>
-                  {sportifs.map(sp => (
+                  {sportifs.map(sp => {
+                    const uc = unreadMap[sp.user.id] ?? 0;
+                    return (
                     <button
                       key={`sp-${sp.id}`}
                       onClick={() => selectThread({ type: 'direct', id: sp.user.id, label: sp.user.name, sublabel: sp.category.name })}
                       className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-muted/50 transition-colors text-left ${
-                        activeThread?.type === 'direct' && activeThread.id === sp.user.id ? 'bg-primary/10 border-r-2 border-primary' : ''
+                        activeThread?.type === 'direct' && activeThread.id === sp.user.id ? 'bg-primary/10 border-r-2 border-primary' : uc > 0 ? 'bg-primary/5' : ''
                       }`}
                     >
-                      <div className="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center shrink-0">
-                        <User size={14} className="text-green-600 dark:text-green-300" />
+                      <div className="relative shrink-0">
+                        <div className="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                          <User size={14} className="text-green-600 dark:text-green-300" />
+                        </div>
+                        {uc > 0 && (
+                          <span className="absolute -top-1 -right-1 h-4 min-w-4 px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                            {uc > 9 ? '9+' : uc}
+                          </span>
+                        )}
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{sp.user.name}</p>
+                      <div className="min-w-0 flex-1">
+                        <p className={`text-sm truncate ${uc > 0 ? 'font-bold text-foreground' : 'font-medium text-foreground'}`}>{sp.user.name}</p>
                         <p className="text-xs text-muted-foreground">{sp.category.name}</p>
                       </div>
                     </button>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

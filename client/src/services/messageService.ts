@@ -36,6 +36,7 @@ export interface Message {
 export interface Conversation {
     contact: UserBasic;
     lastMessage: Message;
+    unreadCount: number;
 }
 
 export interface CoachContact {
@@ -97,5 +98,10 @@ export const getTeamMessages = async (teamId: string) => {
 
 export const sendTeamMessage = async (teamId: string, content: string) => {
     const response = await api.post<Message>(`/messages/team/${teamId}`, { content });
+    return response.data;
+};
+
+export const getUnreadPerSender = async (): Promise<Record<string, number>> => {
+    const response = await api.get<Record<string, number>>('/messages/unread-per-sender');
     return response.data;
 };
