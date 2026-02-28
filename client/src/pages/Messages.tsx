@@ -1,9 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { Conversation, Message, getConversations, getMessages, sendMessage, UserBasic } from '../services/messageService';
+import { Conversation, Message, ContactsData, getConversations, getMessages, sendMessage, UserBasic, getContacts, getUnreadPerSender } from '../services/messageService';
 import { getUsers } from '../services/userService';
-import { getContacts } from '../services/messageService';
-import { User, Send, Search, Megaphone, X } from 'lucide-react';
+import { User, Send, Search, Megaphone, X, Users, Shield, ChevronDown } from 'lucide-react';
 import ClubBanner from '../components/ClubBanner';
 import { createAnnouncement } from '../services/announcementService';
 
@@ -16,6 +15,12 @@ const Messages: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
+  // Sportif contacts (sidebar structurée)
+  const [sportifContactsData, setSportifContactsData] = useState<ContactsData | null>(null);
+  const [unreadMap, setUnreadMap] = useState<Record<string, number>>({});
+  const [coachesOpen, setCoachesOpen] = useState(true);
+  const [teammatesOpen, setTeammatesOpen] = useState(true);
+
   // For new chat modal/search
   const [isNewChatOpen, setIsNewChatOpen] = useState(false);
   const [allUsers, setAllUsers] = useState<UserBasic[]>([]);
@@ -32,14 +37,20 @@ const Messages: React.FC = () => {
   const activeContactRef = useRef<UserBasic | null>(null);
   activeContactRef.current = activeContact;
 
+  const loadUnread = () => getUnreadPerSender().then(setUnreadMap).catch(() => {});
+
   useEffect(() => {
-    loadConversations();
-    // Poll conversations + unread every 5s regardless of open thread
-    const interval = setInterval(() => {
+    if (user?.role === 'SPORTIF') {
+      getContacts().then(setSportifContactsData).catch(console.error).finally(() => setLoading(false));
+      loadUnread();
+      const interval = setInterval(loadUnread, 5000);
+      return () => clearInterval(interval);
+    } else {
       loadConversations();
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
+      const interval = setInterval(loadConversations, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [user?.role]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (activeContact) {
@@ -76,8 +87,8 @@ const Messages: React.FC = () => {
       const data = await getMessages(userId);
       setMessages(data);
       window.dispatchEvent(new CustomEvent('messages-read'));
-      // Mark conversation as read locally
       setConversations(prev => prev.map(c => c.contact.id === userId ? { ...c, unreadCount: 0 } : c));
+      setUnreadMap(prev => ({ ...prev, [userId]: 0 }));
     } catch (error) {
       console.error('Error loading messages', error);
     }
@@ -172,39 +183,130 @@ const Messages: React.FC = () => {
           </div>
         </div>
         <div className="flex-1 overflow-y-auto">
-          {conversations.map((conv) => (
-            <div
-              key={conv.contact.id}
-              onClick={() => setActiveContact(conv.contact)}
-              className={`p-4 border-b border-border cursor-pointer hover:bg-muted/50 transition-colors ${
-                activeContact?.id === conv.contact.id ? 'bg-muted' : conv.unreadCount > 0 ? 'bg-primary/5' : ''
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="h-10 w-10 bg-muted rounded-full flex items-center justify-center">
-                    <User className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  {conv.unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                      {conv.unreadCount > 9 ? '9+' : conv.unreadCount}
-                    </span>
-                  )}
+          {user?.role === 'SPORTIF' && sportifContactsData ? (
+            <>
+              {/* Dirigeants */}
+              {(sportifContactsData.admins ?? []).length > 0 && (
+                <div>
+                  <p className="px-4 pt-4 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <Shield size={11} /> Dirigeants
+                  </p>
+                  {sportifContactsData.admins.map(admin => {
+                    const uc = unreadMap[admin.id] ?? 0;
+                    return (
+                      <div key={admin.id} onClick={() => { setActiveContact(admin); setMessages([]); }}
+                        className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/50 transition-colors ${activeContact?.id === admin.id ? 'bg-primary/10 border-r-2 border-primary' : uc > 0 ? 'bg-primary/5' : ''}`}>
+                        <div className="relative shrink-0">
+                          <div className="h-8 w-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+                            <Shield size={14} className="text-purple-600 dark:text-purple-300" />
+                          </div>
+                          {uc > 0 && <span className="absolute -top-1 -right-1 h-4 min-w-4 px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">{uc > 9 ? '9+' : uc}</span>}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className={`text-sm truncate ${uc > 0 ? 'font-bold' : 'font-medium'} text-foreground`}>{admin.name}</p>
+                          <p className="text-xs text-muted-foreground">Dirigeant</p>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-baseline">
-                    <h3 className={`text-sm truncate ${conv.unreadCount > 0 ? 'font-bold text-foreground' : 'font-medium text-foreground'}`}>{conv.contact.name}</h3>
-                    <span className="text-xs text-muted-foreground shrink-0 ml-1">
-                        {new Date(conv.lastMessage.createdAt).toLocaleDateString('fr-FR')}
-                    </span>
-                  </div>
-                  <p className={`text-sm truncate ${conv.unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>{conv.lastMessage.content}</p>
+              )}
+
+              {/* Coachs */}
+              {(sportifContactsData.coaches ?? []).length > 0 && (
+                <div>
+                  <button onClick={() => setCoachesOpen(v => !v)}
+                    className="w-full flex items-center justify-between px-4 pt-4 pb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors">
+                    <span className="flex items-center gap-1.5"><Users size={11} /> Coachs ({sportifContactsData.coaches.length})</span>
+                    <ChevronDown size={13} className={`transition-transform ${coachesOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {coachesOpen && sportifContactsData.coaches.map(coach => {
+                    const uc = unreadMap[coach.user.id] ?? 0;
+                    return (
+                      <div key={coach.id} onClick={() => { setActiveContact(coach.user); setMessages([]); }}
+                        className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/50 transition-colors ${activeContact?.id === coach.user.id ? 'bg-primary/10 border-r-2 border-primary' : uc > 0 ? 'bg-primary/5' : ''}`}>
+                        <div className="relative shrink-0">
+                          <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                            <Users size={14} className="text-blue-600 dark:text-blue-300" />
+                          </div>
+                          {uc > 0 && <span className="absolute -top-1 -right-1 h-4 min-w-4 px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">{uc > 9 ? '9+' : uc}</span>}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className={`text-sm truncate ${uc > 0 ? 'font-bold' : 'font-medium'} text-foreground`}>{coach.user.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{coach.categories.map(c => c.name).join(', ') || 'Coach'}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
-            </div>
-          ))}
-          {conversations.length === 0 && (
-              <div className="p-4 text-center text-muted-foreground">Aucune conversation pour le moment. Commencez un nouveau chat !</div>
+              )}
+
+              {/* Coéquipiers */}
+              {(sportifContactsData.sportifs ?? []).length > 0 && (
+                <div>
+                  <button onClick={() => setTeammatesOpen(v => !v)}
+                    className="w-full flex items-center justify-between px-4 pt-4 pb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors">
+                    <span className="flex items-center gap-1.5">
+                      <User size={11} />
+                      {sportifContactsData.teams?.length > 0 ? `Mon équipe (${sportifContactsData.sportifs.length})` : `Coéquipiers (${sportifContactsData.sportifs.length})`}
+                    </span>
+                    <ChevronDown size={13} className={`transition-transform ${teammatesOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {teammatesOpen && sportifContactsData.sportifs.map(sp => {
+                    const uc = unreadMap[sp.user.id] ?? 0;
+                    return (
+                      <div key={sp.id} onClick={() => { setActiveContact(sp.user); setMessages([]); }}
+                        className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/50 transition-colors ${activeContact?.id === sp.user.id ? 'bg-primary/10 border-r-2 border-primary' : uc > 0 ? 'bg-primary/5' : ''}`}>
+                        <div className="relative shrink-0">
+                          <div className="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                            <User size={14} className="text-green-600 dark:text-green-300" />
+                          </div>
+                          {uc > 0 && <span className="absolute -top-1 -right-1 h-4 min-w-4 px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">{uc > 9 ? '9+' : uc}</span>}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className={`text-sm truncate ${uc > 0 ? 'font-bold' : 'font-medium'} text-foreground`}>{sp.user.name}</p>
+                          <p className="text-xs text-muted-foreground">{sp.category.name}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {(sportifContactsData.admins ?? []).length === 0 && (sportifContactsData.coaches ?? []).length === 0 && (sportifContactsData.sportifs ?? []).length === 0 && (
+                <div className="p-6 text-center text-sm text-muted-foreground">Aucun contact disponible.</div>
+              )}
+            </>
+          ) : (
+            <>
+              {conversations.map((conv) => (
+                <div key={conv.contact.id} onClick={() => setActiveContact(conv.contact)}
+                  className={`p-4 border-b border-border cursor-pointer hover:bg-muted/50 transition-colors ${activeContact?.id === conv.contact.id ? 'bg-muted' : conv.unreadCount > 0 ? 'bg-primary/5' : ''}`}>
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <div className="h-10 w-10 bg-muted rounded-full flex items-center justify-center">
+                        <User className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      {conv.unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                          {conv.unreadCount > 9 ? '9+' : conv.unreadCount}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-baseline">
+                        <h3 className={`text-sm truncate ${conv.unreadCount > 0 ? 'font-bold text-foreground' : 'font-medium text-foreground'}`}>{conv.contact.name}</h3>
+                        <span className="text-xs text-muted-foreground shrink-0 ml-1">{new Date(conv.lastMessage.createdAt).toLocaleDateString('fr-FR')}</span>
+                      </div>
+                      <p className={`text-sm truncate ${conv.unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>{conv.lastMessage.content}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {conversations.length === 0 && (
+                <div className="p-4 text-center text-muted-foreground">Aucune conversation pour le moment. Commencez un nouveau chat !</div>
+              )}
+            </>
           )}
         </div>
       </div>

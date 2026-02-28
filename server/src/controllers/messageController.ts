@@ -160,7 +160,10 @@ export const getContacts = async (req: AuthRequest, res: Response) => {
     if (req.user.role === 'SPORTIF') {
       const sportifProfile = await prisma.sportif.findUnique({
         where: { userId: req.user.id },
-        include: { category: { select: { id: true, name: true } } }
+        include: {
+          category: { select: { id: true, name: true } },
+          team:     { select: { id: true, name: true } }
+        }
       });
 
       if (!sportifProfile || !sportifProfile.categoryId) {
@@ -168,6 +171,7 @@ export const getContacts = async (req: AuthRequest, res: Response) => {
       }
 
       const categoryId = sportifProfile.categoryId;
+      const teamId     = sportifProfile.teamId ?? null;
 
       // Coaches assigned to this category
       const coaches = await prisma.coach.findMany({
@@ -178,16 +182,17 @@ export const getContacts = async (req: AuthRequest, res: Response) => {
         }
       });
 
-      // Teammates: other sportifs in the same category who have a user account
+      // Teammates: members of the same TEAM (if any), otherwise same category
       const sportifs = await prisma.sportif.findMany({
         where: {
-          categoryId,
+          ...(teamId ? { teamId } : { categoryId }),
           userId: { not: null },
           id: { not: sportifProfile.id }
         },
         include: {
           user: { select: { id: true, name: true, role: true, email: true } },
-          category: { select: { id: true, name: true } }
+          category: { select: { id: true, name: true } },
+          team:     { select: { id: true, name: true } }
         }
       });
 
@@ -197,7 +202,12 @@ export const getContacts = async (req: AuthRequest, res: Response) => {
         select: { id: true, name: true, role: true, email: true }
       });
 
-      return res.json({ coaches, admins, sportifs, categories: [sportifProfile.category], teams: [] });
+      // Teams (the sportif's own team for context)
+      const teams = teamId && sportifProfile.team
+        ? [{ id: sportifProfile.team.id, name: sportifProfile.team.name, categoryId }]
+        : [];
+
+      return res.json({ coaches, admins, sportifs, categories: [sportifProfile.category], teams });
     }
 
     // ── COACH / ADMIN role ────────────────────────────────────────────────
