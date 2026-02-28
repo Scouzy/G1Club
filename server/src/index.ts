@@ -86,6 +86,7 @@ const startServer = async () => {
     // AdminJS Options
     const adminOptions = {
       resources: [
+        { resource: { model: getModelByName('Club'), client: prisma }, options: { navigation: { name: 'Paramètres', icon: 'Home' } } },
         { resource: { model: getModelByName('User'), client: prisma }, options: { navigation: { name: 'Gestion Utilisateurs', icon: 'User' }, properties: { password: { isVisible: false } } } },
         {
             resource: { model: getModelByName('Coach'), client: prisma },
