@@ -8,7 +8,6 @@ import {
   Message, ContactsData, CategoryBasic, TeamBasic
 } from '../../services/messageService';
 import { Send, Users, User, Layers, ChevronLeft, Shield, ChevronDown, Plus, Search, X } from 'lucide-react';
-import { getUsers } from '../../services/userService';
 
 type ThreadType = 'category' | 'team' | 'direct';
 
@@ -39,13 +38,16 @@ const MessagesPage: React.FC = () => {
     getUnreadPerSender().then(setUnreadMap).catch(() => {});
   };
 
-  const openNewChat = async () => {
-    try {
-      const users = await getUsers();
-      setNewChatUsers(users.filter((u: any) => u.id !== undefined));
-      setNewChatSearch('');
-      setNewChatOpen(true);
-    } catch (e) { console.error(e); }
+  const openNewChat = () => {
+    if (!contacts) return;
+    // Build a flat list from already-loaded contacts (no extra API call needed)
+    const all: { id: string; name: string; role: string }[] = [];
+    (contacts.admins ?? []).forEach(a => all.push({ id: a.id, name: a.name, role: 'ADMIN' }));
+    (contacts.coaches ?? []).filter(c => c.user?.id !== user?.id).forEach(c => all.push({ id: c.user.id, name: c.user.name, role: 'COACH' }));
+    (contacts.sportifs ?? []).forEach(s => all.push({ id: s.user.id, name: s.user.name, role: 'SPORTIF' }));
+    setNewChatUsers(all);
+    setNewChatSearch('');
+    setNewChatOpen(true);
   };
 
   const startDirectChat = (u: { id: string; name: string; role: string }) => {
