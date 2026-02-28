@@ -7,7 +7,8 @@ import {
   getUnreadPerSender,
   Message, ContactsData, CategoryBasic, TeamBasic
 } from '../../services/messageService';
-import { Send, Users, User, Layers, ChevronLeft, Shield, ChevronDown } from 'lucide-react';
+import { Send, Users, User, Layers, ChevronLeft, Shield, ChevronDown, Plus, Search, X } from 'lucide-react';
+import { getUsers } from '../../services/userService';
 
 type ThreadType = 'category' | 'team' | 'direct';
 
@@ -30,9 +31,26 @@ const MessagesPage: React.FC = () => {
   const [coachesOpen, setCoachesOpen] = useState(true);
   const [sportifsOpen, setSportifsOpen] = useState(true);
   const [unreadMap, setUnreadMap] = useState<Record<string, number>>({});
+  const [newChatOpen, setNewChatOpen] = useState(false);
+  const [newChatUsers, setNewChatUsers] = useState<{ id: string; name: string; role: string }[]>([]);
+  const [newChatSearch, setNewChatSearch] = useState('');
 
   const loadUnread = () => {
     getUnreadPerSender().then(setUnreadMap).catch(() => {});
+  };
+
+  const openNewChat = async () => {
+    try {
+      const users = await getUsers();
+      setNewChatUsers(users.filter((u: any) => u.id !== undefined));
+      setNewChatSearch('');
+      setNewChatOpen(true);
+    } catch (e) { console.error(e); }
+  };
+
+  const startDirectChat = (u: { id: string; name: string; role: string }) => {
+    setNewChatOpen(false);
+    selectThread({ type: 'direct', id: u.id, label: u.name, sublabel: u.role === 'ADMIN' ? 'Dirigeant' : u.role === 'COACH' ? 'Coach' : 'Sportif' });
   };
 
   useEffect(() => {
@@ -154,13 +172,19 @@ const MessagesPage: React.FC = () => {
   }, {} as Record<string, TeamBasic[]>);
 
   return (
+    <>
     <div className="flex h-[calc(100vh-8rem)] bg-card border border-border rounded-xl overflow-hidden shadow-sm">
 
       {/* ── SIDEBAR CONTACTS ── */}
       <div className={`w-72 shrink-0 border-r border-border flex flex-col ${activeThread ? 'hidden md:flex' : 'flex'}`}>
-        <div className="p-4 border-b border-border">
-          <h1 className="text-lg font-bold text-foreground">Messages</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Communiquez avec votre équipe</p>
+        <div className="p-4 border-b border-border flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-bold text-foreground">Messages</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Communiquez avec votre équipe</p>
+          </div>
+          <button onClick={openNewChat} className="p-1.5 rounded-full hover:bg-muted text-primary" title="Nouvelle conversation">
+            <Plus size={18} />
+          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto">
@@ -456,6 +480,57 @@ const MessagesPage: React.FC = () => {
         )}
       </div>
     </div>
+
+    {/* ── MODALE NOUVELLE CONVERSATION ── */}
+    {newChatOpen && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="bg-card rounded-xl shadow-xl border border-border w-full max-w-sm flex flex-col max-h-[70vh]">
+          <div className="flex items-center justify-between p-4 border-b border-border">
+            <h2 className="text-sm font-semibold text-foreground">Nouveau message</h2>
+            <button onClick={() => setNewChatOpen(false)} className="text-muted-foreground hover:text-foreground"><X size={16} /></button>
+          </div>
+          <div className="p-3 border-b border-border">
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Rechercher..."
+                autoFocus
+                value={newChatSearch}
+                onChange={e => setNewChatSearch(e.target.value)}
+                className="w-full pl-8 pr-3 py-2 text-sm rounded-md border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {newChatUsers
+              .filter(u => u.name.toLowerCase().includes(newChatSearch.toLowerCase()))
+              .map(u => (
+                <button key={u.id} onClick={() => startDirectChat(u)}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-muted/50 transition-colors text-left">
+                  <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${
+                    u.role === 'ADMIN' ? 'bg-purple-100 dark:bg-purple-900' :
+                    u.role === 'COACH' ? 'bg-blue-100 dark:bg-blue-900' : 'bg-green-100 dark:bg-green-900'
+                  }`}>
+                    {u.role === 'ADMIN' ? <Shield size={14} className="text-purple-600 dark:text-purple-300" /> :
+                     u.role === 'COACH' ? <Users size={14} className="text-blue-600 dark:text-blue-300" /> :
+                     <User size={14} className="text-green-600 dark:text-green-300" />}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{u.name}</p>
+                    <p className="text-xs text-muted-foreground">{u.role === 'ADMIN' ? 'Dirigeant' : u.role === 'COACH' ? 'Coach' : 'Sportif'}</p>
+                  </div>
+                </button>
+              ))
+            }
+            {newChatUsers.filter(u => u.name.toLowerCase().includes(newChatSearch.toLowerCase())).length === 0 && (
+              <p className="text-center text-sm text-muted-foreground py-6">Aucun résultat</p>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 
