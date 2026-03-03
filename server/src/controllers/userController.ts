@@ -228,7 +228,19 @@ export const importUsers = async (req: AuthRequest, res: Response) => {
       });
 
       if (user.role === 'COACH') {
-        await prisma.coach.create({ data: { userId: user.id } });
+        console.log(`[Import] Création profil Coach pour userId=${user.id} email=${email}`);
+        const existingCoach = await prisma.coach.findUnique({ where: { userId: user.id } });
+        if (!existingCoach) {
+          try {
+            const newCoach = await prisma.coach.create({ data: { userId: user.id } });
+            console.log(`[Import] Profil Coach créé : id=${newCoach.id}`);
+          } catch (coachErr) {
+            console.error(`[Import] ERREUR création profil Coach pour "${email}" :`, coachErr);
+            results.errors.push(`Ligne ${lineNum} : Utilisateur "${email}" créé mais profil Coach non créé`);
+          }
+        } else {
+          console.log(`[Import] Profil Coach déjà existant pour userId=${user.id}`);
+        }
       }
 
       results.created++;
