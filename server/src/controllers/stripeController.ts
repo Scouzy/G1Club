@@ -3,10 +3,14 @@ import Stripe from 'stripe';
 import { AuthRequest } from '../middleware/authMiddleware';
 import prisma from '../utils/prisma';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, { apiVersion: '2025-01-27.acacia' });
+const getStripe = () => {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error('STRIPE_SECRET_KEY non défini dans .env');
+  return new Stripe(key, { apiVersion: '2025-01-27.acacia' });
+};
 
-const PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID as string;
-const CLIENT_URL  = process.env.CLIENT_URL || 'http://localhost:5173';
+const PRO_PRICE_ID = () => process.env.STRIPE_PRO_PRICE_ID as string;
+const CLIENT_URL   = () => process.env.CLIENT_URL || 'http://localhost:5173';
 
 // POST /api/stripe/create-checkout-session
 export const createCheckoutSession = async (req: AuthRequest, res: Response) => {
@@ -22,6 +26,7 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response) => 
     }
 
     // Créer ou réutiliser le customer Stripe
+    const stripe = getStripe();
     let customerId = club.stripeCustomerId ?? undefined;
     if (!customerId) {
       const customer = await stripe.customers.create({
@@ -36,9 +41,9 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response) => 
       customer: customerId,
       payment_method_types: ['card'],
       mode: 'subscription',
-      line_items: [{ price: PRO_PRICE_ID, quantity: 1 }],
-      success_url: `${CLIENT_URL}/subscribe/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url:  `${CLIENT_URL}/subscribe?cancelled=1`,
+      line_items: [{ price: PRO_PRICE_ID(), quantity: 1 }],
+      success_url: `${CLIENT_URL()}/subscribe/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url:  `${CLIENT_URL()}/subscribe?cancelled=1`,
       metadata: { clubId },
     });
 
@@ -54,6 +59,7 @@ export const stripeWebhook = async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature'] as string;
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
 
+  const stripe = getStripe();
   let event: Stripe.Event;
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
@@ -73,7 +79,7 @@ export const stripeWebhook = async (req: Request, res: Response) => {
           data: {
             plan: 'PRO',
             stripeSubscriptionId: session.subscription as string,
-            stripePriceId: PRO_PRICE_ID,
+            stripePriceId: PRO_PRICE_ID(),
           },
         });
         console.log(`[Stripe] Club ${clubId} passé en PRO`);
@@ -82,7 +88,7 @@ export const stripeWebhook = async (req: Request, res: Response) => {
 
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice;
-        const sub = await stripe.subscriptions.retrieve(invoice.subscription as string);
+        const sub = await getStripe().subscriptions.retrieve(invoice.subscription as string);
         const clubId = sub.metadata?.clubId || (invoice as any).metadata?.clubId;
         if (!clubId) break;
         await prisma.club.update({
@@ -126,9 +132,9 @@ export const createPortalSession = async (req: AuthRequest, res: Response) => {
     const club = await prisma.club.findUnique({ where: { id: clubId } });
     if (!club?.stripeCustomerId) return res.status(400).json({ message: 'Aucun abonnement Stripe trouvé' });
 
-    const session = await stripe.billingPortal.sessions.create({
+    const session = await getStripe().billingPortal.sessions.create({
       customer: club.stripeCustomerId,
-      return_url: `${CLIENT_URL}/admin/club`,
+      return_url: `${CLIENT_URL()}/admin/club`,
     });
 
     res.json({ url: session.url });
