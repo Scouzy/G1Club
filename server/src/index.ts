@@ -58,7 +58,6 @@ const startServer = async () => {
     const { default: AdminJSExpress } = await import('@adminjs/express');
     const AdminJSPrisma = await import('@adminjs/prisma');
     const { default: session } = await import('express-session');
-    const { dark, light, noSidebar } = await import('@adminjs/themes');
 
     // Extract Adapter Components handling potential ESM/CJS interop
     const Database = AdminJSPrisma.Database || (AdminJSPrisma as any).default?.Database;
@@ -238,8 +237,6 @@ const startServer = async () => {
         companyName: 'Espace Dirigeant',
         withMadeWithLove: false,
       },
-      defaultTheme: dark.id,
-      availableThemes: [dark, light, noSidebar],
     };
 
     const admin = new AdminJS(adminOptions);
