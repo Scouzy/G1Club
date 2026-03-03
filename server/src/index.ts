@@ -236,6 +236,28 @@ const startServer = async () => {
       branding: {
         companyName: 'Espace Dirigeant',
         withMadeWithLove: false,
+        theme: {
+          colors: {
+            primary100: '#1a1a2e',
+            primary80:  '#16213e',
+            primary60:  '#0f3460',
+            primary40:  '#533483',
+            primary20:  '#e94560',
+            grey100:    '#0d0d0d',
+            grey80:     '#1a1a1a',
+            grey60:     '#2d2d2d',
+            grey40:     '#4a4a4a',
+            grey20:     '#6b6b6b',
+            white:      '#ffffff',
+            accent:     '#e94560',
+            love:       '#e94560',
+            filterBg:   '#1a1a2e',
+            hoverBg:    '#16213e',
+            inputBorder:'#0f3460',
+            defaultText:'#e0e0e0',
+            lightText:  '#a0a0a0',
+          },
+        },
       },
     };
 
