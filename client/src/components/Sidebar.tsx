@@ -414,11 +414,13 @@ const Sidebar: React.FC = () => {
                   key={item.label}
                   to={item.path!}
                   onClick={closeMobile}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                    active ? 'bg-primary text-primary-foreground' : 'text-white/70 hover:bg-white/8 hover:text-white'
+                  className={`flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-medium transition-all border ${
+                    active
+                      ? 'bg-white/10 border-white/20 text-white shadow-inner'
+                      : 'border-transparent text-white/60 hover:bg-white/8 hover:border-white/10 hover:text-white'
                   }`}
                 >
-                  <item.icon size={18} className={active ? 'text-primary-foreground' : 'text-white/50'} />
+                  <item.icon size={17} className={active ? 'text-white' : 'text-white/40'} />
                   {item.label}
                 </Link>
               );
@@ -452,11 +454,13 @@ const Sidebar: React.FC = () => {
                           key={sub.label}
                           to={sub.path!}
                           onClick={closeMobile}
-                          className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors ${
-                            active ? 'bg-primary text-primary-foreground font-medium' : 'text-white/60 hover:bg-white/8 hover:text-white'
+                          className={`flex items-center gap-2.5 px-3 py-2 rounded-full text-sm transition-all border ${
+                            active
+                              ? 'bg-white/10 border-white/20 text-white font-medium shadow-inner'
+                              : 'border-transparent text-white/60 hover:bg-white/8 hover:border-white/10 hover:text-white'
                           }`}
                         >
-                          <sub.icon size={15} className={active ? 'text-primary-foreground' : 'text-white/40'} />
+                          <sub.icon size={15} className={active ? 'text-white' : 'text-white/40'} />
                           <span className="flex-1">{sub.label}</span>
                           {isMessages && unreadCount > 0 && (
                             <span className="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
