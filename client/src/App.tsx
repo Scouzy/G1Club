@@ -26,6 +26,8 @@ import Messages from './pages/Messages';
 import ProtectedRoute from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
 import VerifyEmail from './pages/VerifyEmail';
+import SubscribePage from './pages/SubscribePage';
+import SubscribeSuccess from './pages/SubscribeSuccess';
 import { RefreshProvider } from './context/RefreshContext';
 
 function App() {
@@ -41,6 +43,8 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/register-club" element={<RegisterClub />} />
+              <Route path="/subscribe" element={<SubscribePage />} />
+              <Route path="/subscribe/success" element={<SubscribeSuccess />} />
 
               {/* Routes accessibles à tous les rôles authentifiés */}
               <Route element={<ProtectedRoute />}>

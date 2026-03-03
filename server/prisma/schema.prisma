@@ -27,6 +27,12 @@ model Club {
   tiktok    String?
   linkedin  String?
 
+  plan                   String   @default("STARTER")
+  stripeCustomerId       String?
+  stripeSubscriptionId   String?
+  stripePriceId          String?
+  planExpiresAt          DateTime?
+
   users         User[]
   categories    Category[]
   announcements ClubAnnouncement[]

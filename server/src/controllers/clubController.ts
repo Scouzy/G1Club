@@ -16,12 +16,16 @@ export const getClubSettings = async (req: Request, res: Response) => {
       return res.json({ id: '', clubName: 'G1Club', name: 'G1Club', logoUrl: null });
     }
 
-    const club = await prisma.club.findUnique({ where: { id: clubId } });
+    const club = await prisma.club.findUnique({
+      where: { id: clubId },
+      include: { _count: { select: { users: true } } }
+    });
     if (!club) {
       return res.json({ id: '', clubName: 'G1Club', name: 'G1Club', logoUrl: null });
     }
 
-    res.json({ ...club, clubName: club.name });
+    const { _count, ...clubData } = club;
+    res.json({ ...clubData, clubName: club.name, memberCount: _count.users });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Erreur serveur' });

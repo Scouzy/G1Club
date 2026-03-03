@@ -15,6 +15,9 @@ export interface ClubSettings {
   youtube?: string;
   tiktok?: string;
   linkedin?: string;
+  plan?: 'STARTER' | 'PRO';
+  stripeCustomerId?: string | null;
+  memberCount?: number;
 }
 
 export const getClubSettings = async (): Promise<ClubSettings> => {

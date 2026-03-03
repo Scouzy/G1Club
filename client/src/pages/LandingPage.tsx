@@ -67,21 +67,17 @@ const TESTIMONIALS = [
 const PRICING = [
   {
     name: 'Starter', price: 'Gratuit', period: '', highlight: false,
-    desc: 'Pour démarrer et tester la plateforme',
-    features: ['1 club', 'Jusqu\'à 30 membres', 'Gestion des catégories', 'Planning basique', 'Messagerie interne'],
+    desc: 'Pour démarrer et découvrir la plateforme',
+    features: ['1 club', 'Jusqu\'à 20 membres', 'Gestion des catégories', 'Planning basique', 'Messagerie interne'],
     cta: 'Créer mon club',
+    ctaLink: '/register-club',
   },
   {
-    name: 'Pro', price: '29€', period: '/ mois', highlight: true,
+    name: 'Pro', price: '39€', period: '/ mois', highlight: true,
     desc: 'Pour les clubs en pleine croissance',
     features: ['1 club', 'Membres illimités', 'Toutes les fonctionnalités', 'Gestion licences & renouvellements', 'Stages & suivi paiements', 'Statistiques avancées', 'Support prioritaire'],
-    cta: 'Commencer l\'essai',
-  },
-  {
-    name: 'Multi-clubs', price: '79€', period: '/ mois', highlight: false,
-    desc: 'Pour les fédérations et groupements',
-    features: ['Clubs illimités', 'Membres illimités', 'Dashboard super admin', 'Vue consolidée', 'API disponible', 'Support dédié'],
-    cta: 'Nous contacter',
+    cta: 'Passer au Pro',
+    ctaLink: '/subscribe',
   },
 ];
 
@@ -388,17 +384,17 @@ const LandingPage: React.FC = () => {
 
       {/* PRICING */}
       <section id="pricing" className="py-24 px-6">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-blue-400 text-sm font-semibold uppercase tracking-widest mb-3">Tarifs</p>
             <h2 className="text-4xl md:text-5xl font-extrabold mb-4">Simple et transparent</h2>
             <p className="text-white/50 text-lg max-w-xl mx-auto">Commencez gratuitement, évoluez selon vos besoins. Sans engagement.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
             {PRICING.map(p => (
               <div key={p.name} className={`relative rounded-2xl border p-8 flex flex-col transition-all ${p.highlight ? 'bg-blue-600/15 border-blue-500/50 shadow-2xl shadow-blue-600/20 scale-105' : 'bg-white/4 border-white/10'}`}>
                 {p.highlight && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-4 py-1 rounded-full">Populaire</div>
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-4 py-1 rounded-full">Recommandé</div>
                 )}
                 <div className="mb-6">
                   <h3 className="text-lg font-bold mb-1">{p.name}</h3>
@@ -415,12 +411,15 @@ const LandingPage: React.FC = () => {
                     </li>
                   ))}
                 </ul>
-                <Link to="/register-club" className={`text-center font-bold py-3 rounded-xl transition-all text-sm ${p.highlight ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/30' : 'bg-white/8 hover:bg-white/15 border border-white/15 text-white'}`}>
+                <Link to={p.ctaLink} className={`text-center font-bold py-3 rounded-xl transition-all text-sm ${p.highlight ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/30' : 'bg-white/8 hover:bg-white/15 border border-white/15 text-white'}`}>
                   {p.cta}
                 </Link>
               </div>
             ))}
           </div>
+          <p className="text-center text-white/30 text-sm mt-8">
+            À partir de 21 membres, votre club bascule automatiquement en formule <span className="text-white/50 font-semibold">Pro</span>.
+          </p>
         </div>
       </section>
 

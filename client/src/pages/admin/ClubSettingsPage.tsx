@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useClub } from '../../context/ClubContext';
 import { updateClubSettings } from '../../services/clubService';
-import { Camera, Save, X, Globe, Facebook, Instagram, Twitter, Youtube, Linkedin, MapPin, Mail, Phone } from 'lucide-react';
+import { createPortalSession } from '../../services/stripeService';
+import { Camera, Save, X, Globe, Facebook, Instagram, Twitter, Youtube, Linkedin, MapPin, Mail, Phone, Zap, ArrowRight, CreditCard } from 'lucide-react';
 
 const TikTokIcon: React.FC<{ size?: number }> = ({ size = 16 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
@@ -102,9 +104,81 @@ const ClubSettingsPage: React.FC = () => {
     }
   };
 
+  const [portalLoading, setPortalLoading] = useState(false);
+  const isPro = club.plan === 'PRO';
+  const isNearLimit = !isPro && (club.memberCount ?? 0) >= 15;
+  const isOverLimit = !isPro && (club.memberCount ?? 0) >= 20;
+
+  const handlePortal = async () => {
+    setPortalLoading(true);
+    try {
+      const url = await createPortalSession();
+      window.location.href = url;
+    } catch { /* ignore */ } finally {
+      setPortalLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-xl mx-auto space-y-6">
       <h1 className="text-2xl font-bold text-foreground">Paramètres du club</h1>
+
+      {/* Plan banner */}
+      {isPro ? (
+        <div className="flex items-center justify-between bg-blue-600/10 border border-blue-500/30 rounded-xl px-5 py-4">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg bg-blue-600/20 flex items-center justify-center">
+              <Zap size={16} className="text-blue-400" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-blue-300">Formule Pro</p>
+              <p className="text-xs text-white/40">Membres illimités · Toutes les fonctionnalités</p>
+            </div>
+          </div>
+          <button
+            onClick={handlePortal}
+            disabled={portalLoading}
+            className="text-xs text-blue-400 hover:text-blue-300 border border-blue-500/40 hover:border-blue-400 rounded-lg px-3 py-1.5 transition-colors flex items-center gap-1.5"
+          >
+            <CreditCard size={13} />
+            {portalLoading ? 'Chargement…' : 'Gérer l\'abonnement'}
+          </button>
+        </div>
+      ) : (
+        <div className={`rounded-xl border px-5 py-4 ${
+          isOverLimit
+            ? 'bg-red-500/10 border-red-500/40'
+            : isNearLimit
+            ? 'bg-yellow-500/10 border-yellow-500/30'
+            : 'bg-white/4 border-white/10'
+        }`}>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold mb-0.5">
+                Formule Starter — gratuite
+                <span className={`ml-2 text-xs font-normal ${
+                  isOverLimit ? 'text-red-400' : isNearLimit ? 'text-yellow-400' : 'text-white/40'
+                }`}>
+                  {club.memberCount ?? 0} / 20 membres
+                </span>
+              </p>
+              {isOverLimit ? (
+                <p className="text-xs text-red-300">Limite atteinte — passez en Pro pour ajouter des membres sans restriction.</p>
+              ) : isNearLimit ? (
+                <p className="text-xs text-yellow-300">Vous approchez de la limite. Passez en Pro avant d'atteindre 21 membres.</p>
+              ) : (
+                <p className="text-xs text-white/40">Jusqu'à 20 membres inclus. Passez en Pro pour une croissance sans limite.</p>
+              )}
+            </div>
+            <Link
+              to="/subscribe"
+              className="shrink-0 flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-2 rounded-lg transition-colors shadow-lg shadow-blue-600/20"
+            >
+              <Zap size={12} /> Passer au Pro <ArrowRight size={12} />
+            </Link>
+          </div>
+        </div>
+      )}
 
       <form onSubmit={handleSave} className="bg-card border border-border rounded-xl p-6 space-y-6">
         {/* Logo */}

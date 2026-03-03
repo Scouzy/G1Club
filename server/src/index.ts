@@ -10,6 +10,9 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(cors());
+// Stripe webhook (/api/stripe/webhook) uses express.raw — registered in stripeRoutes before express.json()
+app.use('/api/stripe', stripeRoutes);
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
@@ -29,6 +32,7 @@ import teamRoutes from './routes/teamRoutes';
 import announcementRoutes from './routes/announcementRoutes';
 import licenceRoutes from './routes/licenceRoutes';
 import stageRoutes from './routes/stageRoutes';
+import stripeRoutes from './routes/stripeRoutes';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
