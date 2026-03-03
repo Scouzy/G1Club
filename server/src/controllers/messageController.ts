@@ -182,10 +182,10 @@ export const getContacts = async (req: AuthRequest, res: Response) => {
         }
       });
 
-      // Teammates: members of the same TEAM (if any), otherwise same category
-      const sportifs = await prisma.sportif.findMany({
+      // Teammates: only members of the same TEAM — no team = no sportif contacts
+      const sportifs = teamId ? await prisma.sportif.findMany({
         where: {
-          ...(teamId ? { teamId } : { categoryId }),
+          teamId,
           userId: { not: null },
           id: { not: sportifProfile.id }
         },
@@ -194,7 +194,7 @@ export const getContacts = async (req: AuthRequest, res: Response) => {
           category: { select: { id: true, name: true } },
           team:     { select: { id: true, name: true } }
         }
-      });
+      }) : [];
 
       // Admin of the club
       const admins = await prisma.user.findMany({
