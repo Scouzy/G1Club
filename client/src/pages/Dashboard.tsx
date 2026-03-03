@@ -101,6 +101,7 @@ const Dashboard: React.FC = () => {
       setAllClubsStats(res.data);
     } catch (error) {
       console.error('Error loading all clubs stats', error);
+      setLoading(false);
     } finally {
       setLoading(false);
     }

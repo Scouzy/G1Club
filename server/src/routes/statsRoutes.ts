@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.use(authenticateToken);
 
-router.get('/all-clubs', authorizeRole(['ADMIN']), getAllClubsStats);
+router.get('/all-clubs', getAllClubsStats);
 router.get('/global', authorizeRole(['ADMIN', 'COACH']), getGlobalStats);
 router.get('/categories', authorizeRole(['ADMIN', 'COACH']), getCategoryStats);
 router.get('/sportif', authorizeRole(['SPORTIF', 'ADMIN']), getSportifStats);
