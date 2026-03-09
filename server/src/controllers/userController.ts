@@ -131,9 +131,37 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
     const clubId = req.user?.clubId;
 
-    // Verify user belongs to same club before deleting
-    const existing = await prisma.user.findFirst({ where: { id: id as string, ...(clubId ? { clubId } : {}) } });
+    const existing = await prisma.user.findFirst({
+      where: { id: id as string, ...(clubId ? { clubId } : {}) },
+      include: { coachProfile: true, sportifProfile: true },
+    });
     if (!existing) return res.status(404).json({ message: 'Utilisateur non trouvé' });
+
+    const userId = id as string;
+    // Supprimer les messages envoyés/reçus
+    await prisma.message.deleteMany({ where: { OR: [{ senderId: userId }, { receiverId: userId }] } });
+    // Supprimer les annonces
+    await prisma.clubAnnouncement.deleteMany({ where: { authorId: userId } });
+
+    // Supprimer le profil Coach et ses données liées
+    if (existing.coachProfile) {
+      const coachId = existing.coachProfile.id;
+      await prisma.annotation.deleteMany({ where: { coachId } });
+      await prisma.evaluation.deleteMany({ where: { coachId } });
+      await prisma.training.deleteMany({ where: { coachId } });
+      await prisma.coach.delete({ where: { id: coachId } });
+    }
+
+    // Supprimer le profil Sportif et ses données liées
+    if (existing.sportifProfile) {
+      const sportifId = existing.sportifProfile.id;
+      await prisma.annotation.deleteMany({ where: { sportifId } });
+      await prisma.evaluation.deleteMany({ where: { sportifId } });
+      await prisma.attendance.deleteMany({ where: { sportifId } });
+      await prisma.licence.deleteMany({ where: { sportifId } });
+      await prisma.stageParticipant.deleteMany({ where: { sportifId } });
+      await prisma.sportif.delete({ where: { id: sportifId } });
+    }
 
     await prisma.user.delete({ where: { id: id as string } });
 
