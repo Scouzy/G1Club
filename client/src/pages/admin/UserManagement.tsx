@@ -13,7 +13,7 @@ const UserManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'SPORTIF' });
+  const [newUser, setNewUser] = useState({ firstName: '', name: '', email: '', password: '', role: 'SPORTIF' });
   const [allClubsUsers, setAllClubsUsers] = useState<{ clubId: string; clubName: string; logoUrl?: string | null; users: User[] }[]>([]);
   const activeClubId = localStorage.getItem('activeClubId');
   const [importing, setImporting] = useState(false);
@@ -95,9 +95,10 @@ const UserManagement: React.FC = () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
     try {
-      await createUser(newUser);
+      const fullName = [newUser.firstName.trim(), newUser.name.trim()].filter(Boolean).join(' ');
+      await createUser({ ...newUser, name: fullName });
       setIsModalOpen(false);
-      setNewUser({ name: '', email: '', password: '', role: 'SPORTIF' });
+      setNewUser({ firstName: '', name: '', email: '', password: '', role: 'SPORTIF' });
       loadUsers();
     } catch (error) {
       console.error('Failed to create user', error);
@@ -239,15 +240,27 @@ const UserManagement: React.FC = () => {
           <div className="relative bg-card rounded-lg shadow-xl p-8 w-full max-w-md border border-border">
             <h2 className="text-xl font-bold mb-4 text-foreground">Ajouter un nouvel utilisateur</h2>
             <form onSubmit={handleCreateUser} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground">Nom</label>
-                <input
-                  type="text"
-                  required
-                  className="mt-1 block w-full border border-input bg-background text-foreground rounded-md shadow-sm py-2 px-3 focus:ring-primary focus:border-primary"
-                  value={newUser.name}
-                  onChange={e => setNewUser({...newUser, name: e.target.value})}
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-foreground">Prénom</label>
+                  <input
+                    type="text"
+                    required
+                    className="mt-1 block w-full border border-input bg-background text-foreground rounded-md shadow-sm py-2 px-3 focus:ring-primary focus:border-primary"
+                    value={newUser.firstName}
+                    onChange={e => setNewUser({...newUser, firstName: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground">Nom</label>
+                  <input
+                    type="text"
+                    required
+                    className="mt-1 block w-full border border-input bg-background text-foreground rounded-md shadow-sm py-2 px-3 focus:ring-primary focus:border-primary"
+                    value={newUser.name}
+                    onChange={e => setNewUser({...newUser, name: e.target.value})}
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground">Email</label>
