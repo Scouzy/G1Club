@@ -383,8 +383,8 @@ const SportifDetails: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-border">
-        <nav className="-mb-px flex gap-6">
+      <div className="border-b border-border overflow-x-auto">
+        <nav className="-mb-px flex gap-2 sm:gap-6 min-w-max">
           {([
             { key: 'overview',    label: 'Vue d\'ensemble' },
             { key: 'presences',   label: `Présences (${totalSessions})` },
