@@ -71,6 +71,15 @@ const Messages: React.FC = () => {
     }
   }, [user?.role]);  // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Load groups for SPORTIF separately
+  useEffect(() => {
+    if (user?.role === 'SPORTIF') {
+      loadGroups();
+      const iv = setInterval(loadGroups, 5000);
+      return () => clearInterval(iv);
+    }
+  }, [user?.role]);  // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (activeGroup) {
       getGroupMessages(activeGroup.id).then(setGroupMessages).catch(() => {});
@@ -165,7 +174,14 @@ const Messages: React.FC = () => {
   }
 
   const openCreateGroup = async () => {
-    if (allUsers.length === 0) {
+    if (user?.role === 'SPORTIF' && sportifContactsData) {
+      // Sportif: only category members (teammates + coaches)
+      const members: UserBasic[] = [
+        ...(sportifContactsData.sportifs ?? []).map(s => s.user),
+        ...(sportifContactsData.coaches ?? []).map(c => c.user),
+      ];
+      setAllUsers(members);
+    } else if (allUsers.length === 0) {
       const users = await getUsers();
       setAllUsers(users.filter((u: any) => u.id !== user?.id));
     }
@@ -267,6 +283,11 @@ const Messages: React.FC = () => {
                 <PlusIcon />
               </button>
             )}
+            {user?.role === 'SPORTIF' && (
+              <button onClick={openCreateGroup} className="p-1.5 rounded-full hover:bg-muted text-primary" title="Cr\u00e9er un groupe">
+                <UsersRound size={16} />
+              </button>
+            )}
           </div>
         </div>
         <div className="flex-1 overflow-y-auto">
@@ -363,6 +384,42 @@ const Messages: React.FC = () => {
               {(sportifContactsData.admins ?? []).length === 0 && (sportifContactsData.coaches ?? []).length === 0 && (sportifContactsData.sportifs ?? []).length === 0 && (
                 <div className="p-6 text-center text-sm text-muted-foreground">Aucun contact disponible.</div>
               )}
+
+              {/* Groupes du sportif */}
+              <div className="border-t border-border mt-1">
+                <div className="flex items-center justify-between px-4 pt-3 pb-1">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <UsersRound size={11} /> Groupes ({groups.length})
+                  </span>
+                  <button onClick={openCreateGroup} className="p-1 rounded hover:bg-muted text-primary" title="Cr\u00e9er un groupe">
+                    <Plus size={13} />
+                  </button>
+                </div>
+                {groups.map(grp => (
+                  <div key={grp.id}
+                    onClick={() => { setActiveGroup(grp); setActiveContact(null); setGroupMessages([]); }}
+                    className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/50 transition-colors ${
+                      activeGroup?.id === grp.id ? 'bg-primary/10 border-r-2 border-primary' : ''
+                    }`}>
+                    <div className="h-8 w-8 rounded-full bg-violet-100 dark:bg-violet-900 flex items-center justify-center shrink-0">
+                      <UsersRound size={14} className="text-violet-600 dark:text-violet-300" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-foreground truncate">{grp.name}</p>
+                      <p className="text-xs text-muted-foreground">{grp.members.length} membre{grp.members.length > 1 ? 's' : ''}</p>
+                    </div>
+                    {grp.creatorId === user?.id && (
+                      <button onClick={e => { e.stopPropagation(); handleDeleteGroup(grp.id); }}
+                        className="hidden group-hover/grp:flex p-1 rounded hover:bg-muted text-red-400">
+                        <Trash2 size={11} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                {groups.length === 0 && (
+                  <p className="px-4 pb-3 text-xs text-muted-foreground">Aucun groupe pour l'instant.</p>
+                )}
+              </div>
             </>
           ) : (
             <>
