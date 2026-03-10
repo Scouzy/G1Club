@@ -9,7 +9,7 @@ import {
 } from '../../services/messageService';
 import {
   getGroups, createGroup, deleteGroup, updateGroup,
-  addMember, removeMember, getGroupMessages, sendGroupMessage,
+  addMember, getGroupMessages, sendGroupMessage,
   Group, GroupMessage
 } from '../../services/groupService';
 import { Send, Users, User, Layers, ChevronLeft, Shield, ChevronDown, Plus, Search, X, Trash2, Pencil, UserPlus, UsersRound } from 'lucide-react';
@@ -167,11 +167,6 @@ const MessagesPage: React.FC = () => {
   const handleAddMember = async (groupId: string, userId: string) => {
     try { await addMember(groupId, userId); await loadGroups(); setShowAddMember(false); }
     catch (e: any) { alert(e?.response?.data?.message || 'Erreur ajout membre'); }
-  };
-
-  const handleRemoveMember = async (groupId: string, userId: string) => {
-    try { await removeMember(groupId, userId); await loadGroups(); }
-    catch (e: any) { alert(e?.response?.data?.message || 'Erreur'); }
   };
 
   const handleSend = async () => {
