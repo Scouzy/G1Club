@@ -86,7 +86,7 @@ export const createLicence = async (req: AuthRequest, res: Response) => {
 // PUT /licences/:id — mettre à jour une licence
 export const updateLicence = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { number, type, status, startDate, expiryDate, federation, notes } = req.body;
 
     const licence = await prisma.licence.update({
@@ -122,7 +122,7 @@ export const updateLicence = async (req: AuthRequest, res: Response) => {
 // DELETE /licences/:id — supprimer une licence
 export const deleteLicence = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     await prisma.licence.delete({ where: { id } });
     res.json({ message: 'Licence supprimée' });
   } catch (error) {

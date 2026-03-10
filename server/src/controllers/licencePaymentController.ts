@@ -5,7 +5,7 @@ import prisma from '../utils/prisma';
 // GET /licences/:licenceId/payments
 export const getPayments = async (req: AuthRequest, res: Response) => {
   try {
-    const { licenceId } = req.params;
+    const licenceId = req.params.licenceId as string;
     const payments = await prisma.licencePayment.findMany({
       where: { licenceId },
       orderBy: { installment: 'asc' },
@@ -21,7 +21,7 @@ export const getPayments = async (req: AuthRequest, res: Response) => {
 // Génère automatiquement N versements égaux
 export const generatePayments = async (req: AuthRequest, res: Response) => {
   try {
-    const { licenceId } = req.params;
+    const licenceId = req.params.licenceId as string;
     const { installmentCount, totalAmount, firstDueDate } = req.body;
 
     if (!installmentCount || !totalAmount || !firstDueDate) {
@@ -73,7 +73,7 @@ export const generatePayments = async (req: AuthRequest, res: Response) => {
 // POST /licences/:licenceId/payments — ajouter un versement manuel
 export const createPayment = async (req: AuthRequest, res: Response) => {
   try {
-    const { licenceId } = req.params;
+    const licenceId = req.params.licenceId as string;
     const { installment, amount, dueDate, status, method, reference, notes } = req.body;
 
     if (!amount || !dueDate) {
@@ -113,7 +113,7 @@ export const createPayment = async (req: AuthRequest, res: Response) => {
 // PUT /licences/:licenceId/payments/:id — modifier un versement (ex: marquer payé)
 export const updatePayment = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { status, paidDate, method, reference, notes, amount, dueDate } = req.body;
 
     const payment = await prisma.licencePayment.update({
@@ -139,7 +139,7 @@ export const updatePayment = async (req: AuthRequest, res: Response) => {
 // DELETE /licences/:licenceId/payments/:id
 export const deletePayment = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     await prisma.licencePayment.delete({ where: { id } });
     res.json({ message: 'Versement supprimé' });
   } catch (error) {

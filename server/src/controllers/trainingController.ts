@@ -48,7 +48,7 @@ export const getTrainings = async (req: AuthRequest, res: Response) => {
 // Get training by ID
 export const getTrainingById = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const training = await prisma.training.findUnique({
       where: { id: id as string },
       include: {
@@ -144,7 +144,7 @@ export const createTraining = async (req: AuthRequest, res: Response) => {
 // Update Training
 export const updateTraining = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { date, duration, type, objectives, report, categoryId, location, opponent, result } = req.body;
 
     const training = await prisma.training.update({
@@ -172,7 +172,7 @@ export const updateTraining = async (req: Request, res: Response) => {
 // Delete Training
 export const deleteTraining = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     await prisma.attendance.deleteMany({ where: { trainingId: id as string } });
     await prisma.training.delete({ where: { id: id as string } });
     res.json({ message: 'Entraînement supprimé avec succès' });
@@ -185,7 +185,7 @@ export const deleteTraining = async (req: Request, res: Response) => {
 // Update Attendance
 export const updateAttendance = async (req: Request, res: Response) => {
     try {
-        const { trainingId } = req.params;
+        const trainingId = req.params.trainingId as string;
         const { attendances } = req.body; // Array of { sportifId, present, reason, id? }
         
         await prisma.$transaction(

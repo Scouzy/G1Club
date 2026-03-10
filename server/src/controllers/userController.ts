@@ -33,7 +33,7 @@ export const getUsers = async (req: AuthRequest, res: Response) => {
 // Get user by ID — scoped to club
 export const getUserById = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const clubId = req.user?.clubId;
     if (!id) return res.status(400).json({ message: 'ID requis' });
 
@@ -99,7 +99,7 @@ export const createUser = async (req: AuthRequest, res: Response) => {
 // Update User — scoped to club
 export const updateUser = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { name, email, role } = req.body;
     const clubId = req.user?.clubId;
 
@@ -128,7 +128,7 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
 // Delete User — scoped to club
 export const deleteUser = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const clubId = req.user?.clubId;
 
     const existing = await prisma.user.findFirst({

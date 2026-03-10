@@ -300,8 +300,7 @@ export const getUnreadPerSender = async (req: AuthRequest, res: Response) => {
 // Get conversation with a specific user
 export const getMessages = async (req: AuthRequest, res: Response) => {
   try {
-    const { userId } = req.params; // The other person's ID
-    const targetUserId = userId as string;
+    const targetUserId = req.params.userId as string;
     if (!req.user) return res.status(401).json({ message: 'Non autorisé' });
     const currentUserId = req.user.id;
     const clubId = await resolveClubId(currentUserId, req.user.clubId);

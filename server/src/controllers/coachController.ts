@@ -48,7 +48,7 @@ export const deleteCoach = async (req: Request, res: Response) => {
 // Get Coach Profile (by ID or current user)
 export const getCoachProfile = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     
     // If id is provided, fetch specific coach (e.g., admin viewing a coach)
     // If not, it might be fetching by query or this route is intended for /me
@@ -121,7 +121,7 @@ export const getCurrentCoachProfile = async (req: AuthRequest, res: Response) =>
 // Update Coach Profile
 export const updateCoachProfile = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params; // If admin updating
+    const id = req.params.id as string; // If admin updating
     const { phone, address, qualifications, experience, bio, specialties, photoUrl } = req.body;
 
     // Check permissions: Admin can update anyone, Coach can update self
@@ -169,7 +169,7 @@ export const updateCoachProfile = async (req: AuthRequest, res: Response) => {
 // Update Coach Categories (Admin only)
 export const updateCoachCategories = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { categoryIds } = req.body; // array of category IDs
 
     if (!Array.isArray(categoryIds)) {

@@ -67,8 +67,7 @@ export const createAnnotation = async (req: AuthRequest, res: Response) => {
 // Delete annotation
 export const deleteAnnotation = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
-    const annotationId = id as string;
+    const annotationId = req.params.id as string;
     
     // Optional: Check ownership (only the coach who created it or admin can delete)
     const annotation = await prisma.annotation.findUnique({ where: { id: annotationId } });

@@ -35,7 +35,7 @@ export const getSportifs = async (req: AuthRequest, res: Response) => {
 // Get sportif by ID — scoped to club via category
 export const getSportifById = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const clubId = req.user?.clubId;
     const sportif = await prisma.sportif.findFirst({
       where: { id: id as string, ...(clubId ? { category: { clubId } } : {}) },
@@ -194,7 +194,7 @@ export const updateMyself = async (req: AuthRequest, res: Response) => {
 // Update Sportif — scoped to club
 export const updateSportif = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { firstName, lastName, birthDate, height, weight, position, categoryId, photoUrl } = req.body;
     const clubId = req.user?.clubId;
 
@@ -228,7 +228,7 @@ export const updateSportif = async (req: AuthRequest, res: Response) => {
 // Delete Sportif — scoped to club
 export const deleteSportif = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const clubId = req.user?.clubId;
 
     const existing = await prisma.sportif.findFirst({

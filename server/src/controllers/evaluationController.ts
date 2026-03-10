@@ -31,7 +31,7 @@ export const getEvaluations = async (req: AuthRequest, res: Response) => {
 // Get evaluation by ID
 export const getEvaluationById = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const evaluation = await prisma.evaluation.findUnique({
       where: { id: id as string },
       include: {
@@ -84,7 +84,7 @@ export const createEvaluation = async (req: AuthRequest, res: Response) => {
 // Update evaluation
 export const updateEvaluation = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { ratings, comment, trainingId } = req.body;
 
     const evaluation = await prisma.evaluation.update({
@@ -106,7 +106,7 @@ export const updateEvaluation = async (req: AuthRequest, res: Response) => {
 // Delete evaluation
 export const deleteEvaluation = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     await prisma.evaluation.delete({ where: { id: id as string } });
     res.json({ message: 'Évaluation supprimée avec succès' });
   } catch (error) {
