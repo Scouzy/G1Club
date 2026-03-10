@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../lib/axios';
-import { Building2, User, Mail, Lock, ChevronRight, MailCheck } from 'lucide-react';
+import { Building2, User, Mail, Lock, ChevronRight, MailCheck, ArrowLeft } from 'lucide-react';
 
 const RegisterClub: React.FC = () => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -41,6 +41,12 @@ const RegisterClub: React.FC = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-md space-y-8">
+        <div>
+          <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft size={15} /> Retour à l'accueil
+          </Link>
+        </div>
+
         {/* Header */}
         <div className="text-center">
           <div
