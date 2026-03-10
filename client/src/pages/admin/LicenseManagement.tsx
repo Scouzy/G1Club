@@ -74,7 +74,13 @@ const LicenseManagement: React.FC = () => {
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ created: number; skipped: number; errors: string[] } | null>(null);
   const importFileRef = useRef<HTMLInputElement>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>(
+    () => (localStorage.getItem('licence_view_mode') as 'list' | 'grid') ?? 'list'
+  );
+  const changeViewMode = (mode: 'list' | 'grid') => {
+    setViewMode(mode);
+    localStorage.setItem('licence_view_mode', mode);
+  };
 
   useEffect(() => {
     loadAll();
@@ -368,8 +374,8 @@ const LicenseManagement: React.FC = () => {
           ))}
         </select>
         <div className="flex items-center gap-1 border border-input rounded-lg p-1 bg-background">
-          <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Vue liste"><LayoutList size={15} /></button>
-          <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Vue grille"><LayoutGrid size={15} /></button>
+          <button onClick={() => changeViewMode('list')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Vue liste"><LayoutList size={15} /></button>
+          <button onClick={() => changeViewMode('grid')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Vue grille"><LayoutGrid size={15} /></button>
         </div>
       </div>
 

@@ -10,7 +10,14 @@ const TrainingList: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>(
+    () => (localStorage.getItem('training_view_mode') as 'list' | 'grid') ?? 'list'
+  );
+
+  const changeViewMode = (mode: 'list' | 'grid') => {
+    setViewMode(mode);
+    localStorage.setItem('training_view_mode', mode);
+  };
 
   const [newTraining, setNewTraining] = useState({
     date: '',
@@ -188,8 +195,8 @@ const TrainingList: React.FC = () => {
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 border border-input rounded-lg p-1 bg-background">
-            <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Vue liste"><LayoutList size={15} /></button>
-            <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Vue grille"><LayoutGrid size={15} /></button>
+            <button onClick={() => changeViewMode('list')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Vue liste"><LayoutList size={15} /></button>
+            <button onClick={() => changeViewMode('grid')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Vue grille"><LayoutGrid size={15} /></button>
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
@@ -203,26 +210,45 @@ const TrainingList: React.FC = () => {
 
       {/* Category Cards — shown only when no category selected */}
       {!selectedCategoryObj && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-          {categories.map(c => {
-            const count = trainings.filter(t => t.categoryId === c.id).length;
-            const upcoming = trainings.filter(t => t.categoryId === c.id && new Date(t.date) >= now && (t.type === 'Match' || t.type === 'Tournoi')).length;
-            return (
-              <button
-                key={c.id}
-                onClick={() => setSelectedCategory(c.id)}
-                className="flex flex-col items-center justify-center p-4 rounded-xl border-2 border-border bg-card hover:border-primary hover:bg-primary/5 hover:shadow-md transition-all"
-              >
-                <Layers size={24} className="text-primary mb-2" />
-                <span className="text-sm font-bold text-foreground">{c.name}</span>
-                <span className="text-xs text-muted-foreground mt-1">{count} séance{count > 1 ? 's' : ''}</span>
-                {upcoming > 0 && (
-                  <span className="text-xs text-orange-500 font-medium mt-0.5">{upcoming} événement{upcoming > 1 ? 's' : ''} à venir</span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+        viewMode === 'grid' ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            {categories.map(c => {
+              const count = trainings.filter(t => t.categoryId === c.id).length;
+              const upcoming = trainings.filter(t => t.categoryId === c.id && new Date(t.date) >= now && (t.type === 'Match' || t.type === 'Tournoi')).length;
+              return (
+                <button key={c.id} onClick={() => setSelectedCategory(c.id)}
+                  className="flex flex-col items-center justify-center p-4 rounded-xl border-2 border-border bg-card hover:border-primary hover:bg-primary/5 hover:shadow-md transition-all">
+                  <Layers size={24} className="text-primary mb-2" />
+                  <span className="text-sm font-bold text-foreground">{c.name}</span>
+                  <span className="text-xs text-muted-foreground mt-1">{count} séance{count > 1 ? 's' : ''}</span>
+                  {upcoming > 0 && <span className="text-xs text-orange-500 font-medium mt-0.5">{upcoming} événement{upcoming > 1 ? 's' : ''} à venir</span>}
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {categories.map(c => {
+              const count = trainings.filter(t => t.categoryId === c.id).length;
+              const upcoming = trainings.filter(t => t.categoryId === c.id && new Date(t.date) >= now && (t.type === 'Match' || t.type === 'Tournoi')).length;
+              return (
+                <button key={c.id} onClick={() => setSelectedCategory(c.id)}
+                  className="w-full flex items-center gap-4 px-5 py-3.5 rounded-xl border border-border bg-card hover:border-primary hover:bg-primary/5 transition-all text-left">
+                  <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <Layers size={18} className="text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-foreground">{c.name}</p>
+                    <p className="text-xs text-muted-foreground">{count} séance{count > 1 ? 's' : ''}</p>
+                  </div>
+                  {upcoming > 0 && (
+                    <span className="text-xs text-orange-500 font-semibold shrink-0">{upcoming} événement{upcoming > 1 ? 's' : ''} à venir</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )
       )}
 
       {/* Category Detail View */}
