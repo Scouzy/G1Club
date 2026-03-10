@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import prisma from '../utils/prisma';
-import { sendVerificationEmail } from '../utils/emailService';
+import { sendVerificationEmail, sendResetPasswordEmail } from '../utils/emailService';
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -135,6 +135,65 @@ export const resendVerificationEmail = async (req: Request, res: Response) => {
     }
 
     res.json({ message: 'Email de vérification renvoyé.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+};
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: 'Email requis' });
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    // Always respond OK to avoid email enumeration
+    if (!user) return res.json({ message: 'Si cet email existe, un lien de réinitialisation a été envoyé.' });
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1h
+
+    await prisma.user.update({
+      where: { email },
+      data: { resetPasswordToken: token, resetPasswordExpiry: expiry },
+    });
+
+    try {
+      await sendResetPasswordEmail(email, user.name, token);
+    } catch (emailErr) {
+      console.error('Reset email failed:', emailErr);
+      return res.status(500).json({ message: "Erreur lors de l'envoi de l'email" });
+    }
+
+    res.json({ message: 'Si cet email existe, un lien de réinitialisation a été envoyé.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password) return res.status(400).json({ message: 'Token et mot de passe requis' });
+    if (password.length < 6) return res.status(400).json({ message: 'Le mot de passe doit faire au moins 6 caractères' });
+
+    const user = await prisma.user.findFirst({
+      where: {
+        resetPasswordToken: token,
+        resetPasswordExpiry: { gt: new Date() },
+      },
+    });
+
+    if (!user) return res.status(400).json({ message: 'Lien invalide ou expiré' });
+
+    const hashed = await bcrypt.hash(password, 10);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashed, resetPasswordToken: null, resetPasswordExpiry: null },
+    });
+
+    res.json({ message: 'Mot de passe réinitialisé avec succès.' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Erreur serveur' });

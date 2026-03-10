@@ -197,7 +197,12 @@ const Login: React.FC = () => {
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1.5">Mot de passe</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label htmlFor="password" className="block text-sm font-medium text-foreground">Mot de passe</label>
+                  <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+                    Mot de passe oublié ?
+                  </Link>
+                </div>
                 <div className="relative">
                   <input
                     id="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" required

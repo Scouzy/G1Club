@@ -26,6 +26,8 @@ import Messages from './pages/Messages';
 import ProtectedRoute from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
 import VerifyEmail from './pages/VerifyEmail';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import SubscribePage from './pages/SubscribePage';
 import SubscribeSuccess from './pages/SubscribeSuccess';
 import { RefreshProvider } from './context/RefreshContext';
@@ -40,6 +42,8 @@ function App() {
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/register-club" element={<RegisterClub />} />
