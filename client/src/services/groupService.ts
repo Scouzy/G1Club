@@ -63,7 +63,7 @@ export const markGroupRead = (groupId: string) => {
   localStorage.setItem(LS_KEY, JSON.stringify(map));
 };
 
-export const hasUnread = (group: Group, currentUserId: string): boolean => {
+export const hasUnread = (group: Group, _currentUserId: string): boolean => {
   const lastMsg = group.updatedAt;
   if (!lastMsg) return false;
   const map = getLastRead();
