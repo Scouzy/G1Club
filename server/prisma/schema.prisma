@@ -346,3 +346,38 @@ model Message {
   teamId      String?
   team        Team?     @relation(fields: [teamId], references: [id])
 }
+
+model Group {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clubId    String
+  creatorId String
+
+  members   GroupMember[]
+  messages  GroupMessage[]
+}
+
+model GroupMember {
+  id       String @id @default(uuid())
+  groupId  String
+  group    Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId   String
+  joinedAt DateTime @default(now())
+
+  @@unique([groupId, userId])
+}
+
+model GroupMessage {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+
+  groupId   String
+  group     Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  senderId  String
+  senderName String
+}

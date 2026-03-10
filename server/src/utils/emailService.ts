@@ -15,7 +15,7 @@ export const sendVerificationEmail = async (to: string, name: string, token: str
   const verifyUrl = `${appUrl}/verify-email?token=${token}`;
 
   await transporter.sendMail({
-    from: `"G1Club" <${process.env.SMTP_USER}>`,
+    from: `"G1Club" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
     to,
     subject: 'Confirmez votre adresse email — G1Club',
     html: `
