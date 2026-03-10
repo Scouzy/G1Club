@@ -5,7 +5,7 @@ import { getUsers } from '../services/userService';
 import { User, Send, Search, Megaphone, X, Users, Shield, ChevronDown, Plus, UsersRound, Pencil, Trash2, UserPlus } from 'lucide-react';
 import ClubBanner from '../components/ClubBanner';
 import { createAnnouncement } from '../services/announcementService';
-import { getGroups, createGroup, deleteGroup, updateGroup, addMember, getGroupMessages, sendGroupMessage, Group, GroupMessage } from '../services/groupService';
+import { getGroups, createGroup, deleteGroup, updateGroup, addMember, getGroupMessages, sendGroupMessage, markGroupRead, hasUnread, Group, GroupMessage } from '../services/groupService';
 
 const Messages: React.FC = () => {
   const { user } = useAuth();
@@ -397,15 +397,20 @@ const Messages: React.FC = () => {
                 </div>
                 {groups.map(grp => (
                   <div key={grp.id}
-                    onClick={() => { setActiveGroup(grp); setActiveContact(null); setGroupMessages([]); }}
+                    onClick={() => { markGroupRead(grp.id); setActiveGroup(grp); setActiveContact(null); setGroupMessages([]); }}
                     className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/50 transition-colors ${
                       activeGroup?.id === grp.id ? 'bg-primary/10 border-r-2 border-primary' : ''
                     }`}>
-                    <div className="h-8 w-8 rounded-full bg-violet-100 dark:bg-violet-900 flex items-center justify-center shrink-0">
-                      <UsersRound size={14} className="text-violet-600 dark:text-violet-300" />
+                    <div className="relative h-8 w-8 shrink-0">
+                      <div className="h-8 w-8 rounded-full bg-violet-100 dark:bg-violet-900 flex items-center justify-center">
+                        <UsersRound size={14} className="text-violet-600 dark:text-violet-300" />
+                      </div>
+                      {hasUnread(grp, user?.id ?? '') && activeGroup?.id !== grp.id && (
+                        <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary border-2 border-card" />
+                      )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-foreground truncate">{grp.name}</p>
+                      <p className={`text-sm truncate ${hasUnread(grp, user?.id ?? '') && activeGroup?.id !== grp.id ? 'font-bold text-foreground' : 'font-medium text-foreground'}`}>{grp.name}</p>
                       <p className="text-xs text-muted-foreground">{grp.members.length} membre{grp.members.length > 1 ? 's' : ''}</p>
                     </div>
                     {grp.creatorId === user?.id && (
@@ -471,15 +476,20 @@ const Messages: React.FC = () => {
                         <button type="button" onClick={() => setEditingGroupId(null)} className="text-muted-foreground"><X size={12} /></button>
                       </form>
                     ) : (
-                      <div onClick={() => { setActiveGroup(grp); setActiveContact(null); setGroupMessages([]); }}
+                      <div onClick={() => { markGroupRead(grp.id); setActiveGroup(grp); setActiveContact(null); setGroupMessages([]); }}
                         className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/50 transition-colors ${
                           activeGroup?.id === grp.id ? 'bg-primary/10 border-r-2 border-primary' : ''
                         }`}>
-                        <div className="h-8 w-8 rounded-full bg-violet-100 dark:bg-violet-900 flex items-center justify-center shrink-0">
-                          <UsersRound size={14} className="text-violet-600 dark:text-violet-300" />
+                        <div className="relative h-8 w-8 shrink-0">
+                          <div className="h-8 w-8 rounded-full bg-violet-100 dark:bg-violet-900 flex items-center justify-center">
+                            <UsersRound size={14} className="text-violet-600 dark:text-violet-300" />
+                          </div>
+                          {hasUnread(grp, user?.id ?? '') && activeGroup?.id !== grp.id && (
+                            <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary border-2 border-card" />
+                          )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-foreground truncate">{grp.name}</p>
+                          <p className={`text-sm truncate ${hasUnread(grp, user?.id ?? '') && activeGroup?.id !== grp.id ? 'font-bold text-foreground' : 'font-medium text-foreground'}`}>{grp.name}</p>
                           <p className="text-xs text-muted-foreground">{grp.members.length} membre{grp.members.length > 1 ? 's' : ''}</p>
                         </div>
                         {grp.creatorId === user?.id && (

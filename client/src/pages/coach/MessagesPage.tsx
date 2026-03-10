@@ -10,6 +10,7 @@ import {
 import {
   getGroups, createGroup, deleteGroup, updateGroup,
   addMember, getGroupMessages, sendGroupMessage,
+  markGroupRead, hasUnread,
   Group, GroupMessage
 } from '../../services/groupService';
 import { Send, Users, User, Layers, ChevronLeft, Shield, ChevronDown, Plus, Search, X, Trash2, Pencil, UserPlus, UsersRound } from 'lucide-react';
@@ -465,7 +466,7 @@ const MessagesPage: React.FC = () => {
                   </form>
                 ) : (
                   <button
-                    onClick={() => { selectThread({ type: 'group', id: grp.id, label: grp.name, sublabel: `${grp.members.length} membres` }); }}
+                    onClick={() => { markGroupRead(grp.id); selectThread({ type: 'group', id: grp.id, label: grp.name, sublabel: `${grp.members.length} membres` }); }}
                     className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-muted/50 transition-colors text-left ${
                       activeThread?.type === 'group' && activeThread.id === grp.id ? 'bg-primary/10 border-r-2 border-primary' : ''
                     }`}
@@ -477,6 +478,9 @@ const MessagesPage: React.FC = () => {
                       <p className="text-sm font-medium text-foreground truncate">{grp.name}</p>
                       <p className="text-xs text-muted-foreground">{grp.members.length} membre{grp.members.length > 1 ? 's' : ''}</p>
                     </div>
+                    {hasUnread(grp, user?.id ?? '') && activeThread?.id !== grp.id && (
+                      <span className="h-2 w-2 rounded-full bg-primary shrink-0" />
+                    )}
                     {grp.creatorId === user?.id && (
                       <div className="hidden group-hover/grp:flex items-center gap-1 shrink-0">
                         <button

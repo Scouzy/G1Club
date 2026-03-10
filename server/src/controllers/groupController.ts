@@ -201,7 +201,8 @@ export const sendGroupMessage = async (req: AuthRequest, res: Response) => {
     });
     if (!member) return res.status(403).json({ message: 'Non autorisé' });
 
-    const senderName = req.user?.name ?? 'Inconnu';
+    const sender = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
+    const senderName = sender?.name ?? 'Inconnu';
 
     const message = await prisma.groupMessage.create({
       data: { groupId, senderId: userId, senderName, content: content.trim() },

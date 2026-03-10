@@ -49,3 +49,25 @@ export const getGroupMessages = (groupId: string) =>
 
 export const sendGroupMessage = (groupId: string, content: string) =>
   api.post<GroupMessage>(`/groups/${groupId}/messages`, { content }).then(r => r.data);
+
+// ── Unread tracking via localStorage ──
+const LS_KEY = 'group_last_read';
+
+const getLastRead = (): Record<string, string> => {
+  try { return JSON.parse(localStorage.getItem(LS_KEY) ?? '{}'); } catch { return {}; }
+};
+
+export const markGroupRead = (groupId: string) => {
+  const map = getLastRead();
+  map[groupId] = new Date().toISOString();
+  localStorage.setItem(LS_KEY, JSON.stringify(map));
+};
+
+export const hasUnread = (group: Group, currentUserId: string): boolean => {
+  const lastMsg = group.updatedAt;
+  if (!lastMsg) return false;
+  const map = getLastRead();
+  const lastRead = map[group.id];
+  if (!lastRead) return true;
+  return new Date(lastMsg) > new Date(lastRead);
+};
