@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import api from '../../lib/axios';
 import {
   Plus, X, Pencil, Trash2, Search, ChevronRight, ChevronDown,
   Calendar, Clock, MapPin, Users, CheckCircle, AlertTriangle,
-  XCircle, Wallet, UserPlus, Zap
+  XCircle, Wallet, UserPlus, Zap, Download, Upload
 } from 'lucide-react';
 
 interface Category { id: string; name: string; color?: string | null; }
@@ -45,6 +45,9 @@ const StageManagement: React.FC = () => {
   const [sportifs, setSportifs] = useState<Sportif[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{ created: number; skipped: number; errors: string[] } | null>(null);
+  const importFileRef = useRef<HTMLInputElement>(null);
   const [expandedStage, setExpandedStage] = useState<string | null>(null);
   const [stageDetails, setStageDetails] = useState<Record<string, Stage>>({});
   const [showStageModal, setShowStageModal] = useState(false);
@@ -169,10 +172,61 @@ const StageManagement: React.FC = () => {
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">Gestion des stages</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Organisez vos stages et suivez les paiements des participants</p>
         </div>
-        <button onClick={openCreateStage} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors shrink-0">
-          <Plus size={16} /> <span className="hidden sm:inline">Nouveau stage</span><span className="sm:hidden">Nouveau</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <button
+            onClick={async () => {
+              try {
+                const res = await api.get('/stages/export', { responseType: 'blob' });
+                const url = URL.createObjectURL(new Blob([res.data]));
+                const a = document.createElement('a'); a.href = url; a.download = 'stages.xlsx'; a.click();
+                URL.revokeObjectURL(url);
+              } catch { alert('Erreur export'); }
+            }}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            <Download size={15} /> <span className="hidden sm:inline">Exporter</span>
+          </button>
+          <label className={`flex items-center gap-2 px-3 py-2 rounded-lg border border-border text-sm cursor-pointer transition-colors ${
+            importing ? 'opacity-50 cursor-not-allowed' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+          }`}>
+            <Upload size={15} /> <span className="hidden sm:inline">{importing ? 'Import...' : 'Importer'}</span>
+            <input ref={importFileRef} type="file" accept=".xlsx,.xlsm,.xls" className="hidden" disabled={importing}
+              onChange={async (e) => {
+                const file = e.target.files?.[0]; if (!file) return;
+                setImporting(true);
+                try {
+                  const fd = new FormData(); fd.append('file', file);
+                  const res = await api.post('/stages/import', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+                  setImportResult(res.data);
+                  loadAll();
+                } catch (err: any) {
+                  setImportResult({ created: 0, skipped: 0, errors: [err?.response?.data?.message || 'Erreur import'] });
+                } finally {
+                  setImporting(false);
+                  if (importFileRef.current) importFileRef.current.value = '';
+                }
+              }}
+            />
+          </label>
+          <button onClick={openCreateStage} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+            <Plus size={16} /> <span className="hidden sm:inline">Nouveau stage</span><span className="sm:hidden">Nouveau</span>
+          </button>
+        </div>
       </div>
+
+      {/* Import result */}
+      {importResult && (
+        <div className={`rounded-xl border p-4 text-sm ${
+          importResult.errors.length > 0 ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-700 dark:text-yellow-400' : 'bg-green-500/10 border-green-500/30 text-green-700 dark:text-green-400'
+        }`}>
+          <p className="font-semibold">{importResult.errors.length === 0 ? '✅ Import réussi' : '⚠️ Import avec avertissements'}</p>
+          <p>{importResult.created} créé{importResult.created > 1 ? 's' : ''} · {importResult.skipped} ignoré{importResult.skipped > 1 ? 's' : ''}</p>
+          {importResult.errors.length > 0 && (
+            <ul className="mt-1 space-y-0.5 text-xs list-disc list-inside opacity-80">{importResult.errors.map((e, i) => <li key={i}>{e}</li>)}</ul>
+          )}
+          <button onClick={() => setImportResult(null)} className="mt-2 text-xs underline opacity-70 hover:opacity-100">Fermer</button>
+        </div>
+      )}
 
       <div className="relative w-full max-w-sm">
         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />

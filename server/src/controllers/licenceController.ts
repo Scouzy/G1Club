@@ -1,6 +1,10 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/authMiddleware';
 import prisma from '../utils/prisma';
+import * as XLSX from 'xlsx';
+import multer from 'multer';
+
+export const upload = multer({ storage: multer.memoryStorage() });
 
 // GET /licences — liste toutes les licences du club
 export const getLicences = async (req: AuthRequest, res: Response) => {
@@ -124,6 +128,115 @@ export const deleteLicence = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Erreur serveur' });
+  }
+};
+
+// GET /licences/export — export Excel
+export const exportLicences = async (req: AuthRequest, res: Response) => {
+  try {
+    const clubId = req.user?.clubId;
+    const licences = await prisma.licence.findMany({
+      where: { sportif: { category: clubId ? { clubId } : undefined } },
+      include: { sportif: { select: { firstName: true, lastName: true, category: { select: { name: true } } } } },
+      orderBy: { expiryDate: 'asc' },
+    });
+
+    const rows = licences.map(l => ({
+      Prénom: l.sportif.firstName,
+      Nom: l.sportif.lastName,
+      Catégorie: l.sportif.category.name,
+      'N° Licence': l.number,
+      Type: l.type,
+      Statut: l.status,
+      'Date début': new Date(l.startDate).toLocaleDateString('fr-FR'),
+      Expiration: new Date(l.expiryDate).toLocaleDateString('fr-FR'),
+      Fédération: l.federation || '',
+      'Montant (€)': l.totalAmount ?? '',
+      Notes: l.notes || '',
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Licences');
+    const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+
+    res.setHeader('Content-Disposition', 'attachment; filename="licences.xlsx"');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(buf);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erreur export' });
+  }
+};
+
+// POST /licences/import — import Excel
+export const importLicences = async (req: AuthRequest, res: Response) => {
+  try {
+    const clubId = req.user?.clubId;
+    if (!req.file) return res.status(400).json({ message: 'Fichier manquant' });
+
+    const wb = XLSX.read(req.file.buffer, { type: 'buffer', cellDates: true });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows: any[] = XLSX.utils.sheet_to_json(ws);
+
+    let created = 0; const errors: string[] = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const lineNum = i + 2;
+      try {
+        const firstName = String(row['Prénom'] || '').trim();
+        const lastName = String(row['Nom'] || '').trim();
+        const number = String(row['N° Licence'] || '').trim();
+        const type = String(row['Type'] || 'Compétition').trim();
+        const status = String(row['Statut'] || 'ACTIVE').trim();
+        const startDateRaw = row['Date début'];
+        const expiryDateRaw = row['Expiration'];
+
+        if (!firstName || !lastName || !number || !startDateRaw || !expiryDateRaw) {
+          errors.push(`Ligne ${lineNum} : données manquantes`);
+          continue;
+        }
+
+        const startDate = startDateRaw instanceof Date ? startDateRaw : new Date(startDateRaw);
+        const expiryDate = expiryDateRaw instanceof Date ? expiryDateRaw : new Date(expiryDateRaw);
+
+        if (isNaN(startDate.getTime()) || isNaN(expiryDate.getTime())) {
+          errors.push(`Ligne ${lineNum} : dates invalides`);
+          continue;
+        }
+
+        const sportif = await prisma.sportif.findFirst({
+          where: { firstName, lastName, category: clubId ? { clubId } : undefined },
+        });
+        if (!sportif) {
+          errors.push(`Ligne ${lineNum} : sportif "${firstName} ${lastName}" introuvable`);
+          continue;
+        }
+
+        await prisma.licence.create({
+          data: {
+            sportifId: sportif.id,
+            number,
+            type,
+            status,
+            startDate,
+            expiryDate,
+            federation: String(row['Fédération'] || '').trim() || null,
+            notes: String(row['Notes'] || '').trim() || null,
+            totalAmount: row['Montant (€)'] ? parseFloat(row['Montant (€)']) : null,
+          },
+        });
+        created++;
+      } catch (err: any) {
+        errors.push(`Ligne ${lineNum} : ${err.message}`);
+      }
+    }
+
+    res.json({ created, skipped: rows.length - created - errors.length, errors });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erreur import' });
   }
 };
 
