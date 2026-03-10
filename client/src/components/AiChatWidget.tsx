@@ -138,10 +138,10 @@ const AiChatWidget: React.FC = () => {
                       <p className="text-sm font-medium">Assistant sportif IA</p>
                       <p className="text-xs mt-1 opacity-70">Posez une question sur la gestion d'équipe, les entraînements, les performances…</p>
                     </div>
-                    <div className="flex flex-wrap gap-2 justify-center mt-2">
-                      {['Conseils entraînement', 'Gestion d\'équipe', 'Suivi performance'].map(q => (
+                    <div className="flex flex-wrap gap-2 justify-center mt-2 max-w-full">
+                      {['Conseils entraînement', 'Gestion d\'équipe', 'Suivi perfo'].map(q => (
                         <button key={q} onClick={() => { setInput(q); textareaRef.current?.focus(); }}
-                          className="text-xs px-3 py-1.5 rounded-full border border-border hover:bg-muted transition-colors">
+                          className="text-xs px-2.5 py-1.5 rounded-full border border-border hover:bg-muted transition-colors whitespace-nowrap">
                           {q}
                         </button>
                       ))}
@@ -189,8 +189,7 @@ const AiChatWidget: React.FC = () => {
                     onKeyDown={handleKeyDown}
                     placeholder="Posez votre question…"
                     rows={1}
-                    disabled={ollamaAvailable === false}
-                    className="flex-1 resize-none rounded-xl border border-input bg-background text-foreground px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[38px] max-h-24 disabled:opacity-50"
+                    className="flex-1 resize-none rounded-xl border border-input bg-background text-foreground px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[38px] max-h-24"
                     style={{ height: 'auto' }}
                     onInput={e => {
                       const t = e.target as HTMLTextAreaElement;
@@ -200,7 +199,7 @@ const AiChatWidget: React.FC = () => {
                   />
                   <button
                     onClick={handleSend}
-                    disabled={!input.trim() || loading || ollamaAvailable === false}
+                    disabled={!input.trim() || loading}
                     className="h-[38px] w-[38px] shrink-0 rounded-xl bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 disabled:opacity-40 transition-colors"
                   >
                     <Send size={14} />
