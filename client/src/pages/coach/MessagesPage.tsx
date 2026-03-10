@@ -432,7 +432,18 @@ const MessagesPage: React.FC = () => {
                 <UsersRound size={11} /> Groupes ({groups.length}/10)
               </span>
               <button
-                onClick={() => { setShowCreateGroup(true); setNewGroupName(''); setNewGroupMembers([]); }}
+                onClick={() => {
+                  if (!contacts) return;
+                  const all: { id: string; name: string; role: string }[] = [];
+                  (contacts.admins ?? []).forEach(a => all.push({ id: a.id, name: a.name, role: 'ADMIN' }));
+                  (contacts.coaches ?? []).filter(c => c.user?.id !== user?.id).forEach(c => all.push({ id: c.user.id, name: c.user.name, role: 'COACH' }));
+                  (contacts.sportifs ?? []).forEach(s => all.push({ id: s.user.id, name: s.user.name, role: 'SPORTIF' }));
+                  setNewChatUsers(all);
+                  setShowCreateGroup(true);
+                  setNewGroupName('');
+                  setNewGroupMembers([]);
+                  setGroupMemberSearch('');
+                }}
                 className="p-1 rounded hover:bg-muted text-primary"
                 title="Créer un groupe"
               >
@@ -544,7 +555,17 @@ const MessagesPage: React.FC = () => {
               {/* Group actions: add member */}
               {activeThread.type === 'group' && groups.find(g => g.id === activeThread.id)?.creatorId === user?.id && (
                 <button
-                  onClick={() => { setShowAddMember(true); setAddMemberSearch(''); }}
+                  onClick={() => {
+                    if (contacts && newChatUsers.length === 0) {
+                      const all: { id: string; name: string; role: string }[] = [];
+                      (contacts.admins ?? []).forEach(a => all.push({ id: a.id, name: a.name, role: 'ADMIN' }));
+                      (contacts.coaches ?? []).filter(c => c.user?.id !== user?.id).forEach(c => all.push({ id: c.user.id, name: c.user.name, role: 'COACH' }));
+                      (contacts.sportifs ?? []).forEach(s => all.push({ id: s.user.id, name: s.user.name, role: 'SPORTIF' }));
+                      setNewChatUsers(all);
+                    }
+                    setShowAddMember(true);
+                    setAddMemberSearch('');
+                  }}
                   className="shrink-0 p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
                   title="Ajouter un membre"
                 >
