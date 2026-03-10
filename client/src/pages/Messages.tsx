@@ -163,7 +163,7 @@ const Messages: React.FC = () => {
     <ClubBanner />
     <div className="flex h-[calc(100vh-8rem)] bg-background border border-border rounded-lg overflow-hidden">
       {/* Sidebar */}
-      <div className="w-1/3 bg-card border-r border-border flex flex-col">
+      <div className={`w-full md:w-1/3 bg-card border-r border-border flex flex-col ${activeContact ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-4 border-b border-border flex justify-between items-center gap-2">
           <h2 className="text-lg font-semibold text-foreground">Messages</h2>
           <div className="flex items-center gap-1">
@@ -314,15 +314,18 @@ const Messages: React.FC = () => {
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className={`flex-1 flex flex-col ${!activeContact ? 'hidden md:flex' : 'flex'}`}>
         {activeContact ? (
           <>
             <div className="p-4 bg-card border-b border-border flex items-center gap-3">
-              <div className="h-10 w-10 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center">
+              <button className="md:hidden p-1 rounded hover:bg-muted text-muted-foreground" onClick={() => setActiveContact(null)}>
+                <User className="h-4 w-4 rotate-180" />← 
+              </button>
+              <div className="h-10 w-10 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center shrink-0">
                 <User className="h-5 w-5 text-indigo-600 dark:text-indigo-300" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-foreground">{activeContact.name}</h2>
+                <h2 className="text-base sm:text-lg font-semibold text-foreground">{activeContact.name}</h2>
                 <p className="text-xs text-muted-foreground">
                     {activeContact.role === 'ADMIN' ? 'Dirigeant' : 
                      activeContact.role === 'COACH' ? 'Coach' : 'Sportif'}

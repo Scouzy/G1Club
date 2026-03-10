@@ -211,34 +211,34 @@ const EventsPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <button onClick={handleBack} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
-            <ChevronLeft size={16} /> Retour
+            <ChevronLeft size={16} /> <span className="hidden sm:inline">Retour</span>
           </button>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <h1 className="text-lg sm:text-2xl font-bold text-foreground flex items-center gap-2">
             <span className="inline-block h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: selectedCategory!.color || '#3b82f6' }} />
-            Catégorie {selectedCategory!.name}
+            <span className="hidden sm:inline">Catégorie </span>{selectedCategory!.name}
           </h1>
         </div>
         {activeTab !== 'entrainements' && canEdit(selectedCategory!.id) && (
           <button
             onClick={() => { activeTab === 'seances' ? setShowScheduleForm(true) : setShowEventForm(true); }}
-            className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 shrink-0"
           >
             <Plus size={16} />
-            {activeTab === 'seances' ? 'Ajouter un créneau' : 'Ajouter un événement'}
+            <span className="hidden sm:inline">{activeTab === 'seances' ? 'Ajouter un créneau' : 'Ajouter un événement'}</span>
           </button>
         )}
         {!canEdit(selectedCategory!.id) && (
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground border border-border rounded-md px-3 py-2">
-            <Lock size={12} /> Lecture seule
+            <Lock size={12} /> <span className="hidden sm:inline">Lecture seule</span>
           </span>
         )}
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-border">
+      <div className="flex gap-1 border-b border-border overflow-x-auto">
         <button
           onClick={() => setActiveTab('seances')}
           className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'seances' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}

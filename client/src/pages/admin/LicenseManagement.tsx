@@ -216,16 +216,16 @@ const LicenseManagement: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Gestion des licences</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Gestion des licences</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Gérez les licences de tous les sportifs du club</p>
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors shrink-0"
         >
-          <Plus size={16} /> Nouvelle licence
+          <Plus size={16} /> <span className="hidden sm:inline">Nouvelle licence</span><span className="sm:hidden">Nouvelle</span>
         </button>
       </div>
 
@@ -316,8 +316,8 @@ const LicenseManagement: React.FC = () => {
 
       {/* Table */}
       <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto -mx-0">
+          <table className="w-full text-sm min-w-[700px]">
             <thead>
               <tr className="border-b border-border bg-muted/40">
                 <th className="text-left px-5 py-3 font-semibold text-muted-foreground">Sportif</th>

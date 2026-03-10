@@ -164,17 +164,17 @@ const StageManagement: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Gestion des stages</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Gestion des stages</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Organisez vos stages et suivez les paiements des participants</p>
         </div>
-        <button onClick={openCreateStage} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
-          <Plus size={16} /> Nouveau stage
+        <button onClick={openCreateStage} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors shrink-0">
+          <Plus size={16} /> <span className="hidden sm:inline">Nouveau stage</span><span className="sm:hidden">Nouveau</span>
         </button>
       </div>
 
-      <div className="relative max-w-sm">
+      <div className="relative w-full max-w-sm">
         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <input type="text" placeholder="Rechercher un stage…" value={search} onChange={e => setSearch(e.target.value)}
           className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
@@ -194,7 +194,7 @@ const StageManagement: React.FC = () => {
             const detail = stageDetails[stage.id];
             return (
               <div key={stage.id} className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
-                <div className="flex items-center gap-4 px-5 py-4">
+                <div className="flex items-start gap-3 sm:gap-4 px-3 sm:px-5 py-3 sm:py-4">
                   <div className="bg-primary/10 rounded-xl p-3 text-center min-w-[56px] shrink-0">
                     <div className="text-lg font-bold text-primary leading-none">{new Date(stage.startDate).getDate()}</div>
                     <div className="text-xs uppercase text-primary/70">{new Date(stage.startDate).toLocaleDateString('fr-FR', { month: 'short' })}</div>
@@ -214,11 +214,11 @@ const StageManagement: React.FC = () => {
                       <span className="flex items-center gap-1 font-semibold text-foreground"><Wallet size={11} /> {stage.price.toFixed(2)} €</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1 shrink-0">
                     <button onClick={() => openEditStage(stage)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"><Pencil size={14} /></button>
                     <button onClick={() => setDeleteStageId(stage.id)} className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-muted-foreground hover:text-red-600 transition-colors"><Trash2 size={14} /></button>
-                    <button onClick={() => toggleExpand(stage.id)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/80 text-foreground text-xs font-medium ml-1">
-                      Participants {isExpanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+                    <button onClick={() => toggleExpand(stage.id)} className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/80 text-foreground text-xs font-medium">
+                      <span className="hidden sm:inline">Participants </span>{isExpanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
                     </button>
                   </div>
                 </div>

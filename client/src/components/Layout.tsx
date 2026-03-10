@@ -16,7 +16,7 @@ const LayoutInner: React.FC<LayoutProps> = ({ children }) => {
           collapsed ? 'md:ml-16' : 'md:ml-64'
         }`}
       >
-        <div className="container mx-auto p-4 md:p-8 pt-16 md:pt-8">
+        <div className="w-full p-3 sm:p-4 md:p-8 pt-16 md:pt-8 max-w-full overflow-x-hidden">
           {children}
         </div>
       </main>

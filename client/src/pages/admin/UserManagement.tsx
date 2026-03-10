@@ -128,9 +128,9 @@ const UserManagement: React.FC = () => {
   return (
     <div>
       <ClubBanner />
-      <div className="flex flex-wrap justify-between items-center mb-6 gap-3">
-        <h1 className="text-2xl font-bold text-foreground">Gestion des utilisateurs</h1>
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap justify-between items-start mb-6 gap-3">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Gestion des utilisateurs</h1>
+        <div className="flex flex-wrap items-center gap-2">
           <button onClick={handleExport}
             className="flex items-center gap-2 px-3 py-2 rounded-md border border-border text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             title="Exporter en Excel">
