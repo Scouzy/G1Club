@@ -646,7 +646,7 @@ const Messages: React.FC = () => {
                   className="w-full text-sm rounded-lg border border-input bg-background px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" />
               </div>
               <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-1">Membres ({newGroupMemberIds.length + 1}/10)</label>
+                <label className="text-xs font-medium text-muted-foreground block mb-1">Membres ({newGroupMemberIds.length + 1}/20)</label>
                 <div className="relative mb-2">
                   <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                   <input type="text" placeholder="Rechercher…" value={groupMemberSearch}
@@ -656,7 +656,7 @@ const Messages: React.FC = () => {
                 <div className="max-h-40 overflow-y-auto space-y-0.5">
                   {allUsers.filter(u => u.name.toLowerCase().includes(groupMemberSearch.toLowerCase())).map(u => {
                     const checked = newGroupMemberIds.includes(u.id);
-                    const limitReached = newGroupMemberIds.length >= 9 && !checked;
+                    const limitReached = newGroupMemberIds.length >= 19 && !checked;
                     return (
                       <label key={u.id} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-muted/50 ${limitReached ? 'opacity-40' : ''}`}>
                         <input type="checkbox" checked={checked} disabled={limitReached}

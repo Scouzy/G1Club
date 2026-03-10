@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/authMiddleware';
 import prisma from '../utils/prisma';
 
-const MAX_MEMBERS = 10;
+const MAX_MEMBERS = 20;
 
 // GET /groups — liste les groupes du club où l'utilisateur est membre
 export const getGroups = async (req: AuthRequest, res: Response) => {

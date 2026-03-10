@@ -429,7 +429,7 @@ const MessagesPage: React.FC = () => {
           <div>
             <div className="w-full flex items-center justify-between px-4 pt-4 pb-2">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                <UsersRound size={11} /> Groupes ({groups.length}/10)
+                <UsersRound size={11} /> Groupes ({groups.length}/20)
               </span>
               <button
                 onClick={() => {
@@ -688,7 +688,7 @@ const MessagesPage: React.FC = () => {
             </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                Membres ({newGroupMembers.length + 1}/10 — vous êtes inclus)
+                Membres ({newGroupMembers.length + 1}/20 — vous êtes inclus)
               </label>
               <div className="relative mb-2">
                 <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -705,7 +705,7 @@ const MessagesPage: React.FC = () => {
                   .filter(u => u.name.toLowerCase().includes(groupMemberSearch.toLowerCase()))
                   .map(u => {
                     const checked = newGroupMembers.includes(u.id);
-                    const limitReached = newGroupMembers.length >= 9 && !checked;
+                    const limitReached = newGroupMembers.length >= 19 && !checked;
                     return (
                       <label key={u.id} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-muted/50 ${limitReached ? 'opacity-40 cursor-not-allowed' : ''}`}>
                         <input
