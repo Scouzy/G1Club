@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import Sidebar from './Sidebar';
 import { SidebarProvider, useSidebar } from '../context/SidebarContext';
+import AiChatWidget from './AiChatWidget';
 
 interface LayoutProps {
   children: ReactNode;
@@ -20,6 +21,7 @@ const LayoutInner: React.FC<LayoutProps> = ({ children }) => {
           {children}
         </div>
       </main>
+      <AiChatWidget />
     </div>
   );
 };
