@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Training, getTrainings, createTraining, deleteTraining } from '../../services/trainingService';
 import { Category, getCategories } from '../../services/categoryService';
-import { Plus, Trash2, Calendar, Clock, Layers } from 'lucide-react';
+import { Plus, Trash2, Calendar, Clock, Layers, LayoutList, LayoutGrid } from 'lucide-react';
 
 const TrainingList: React.FC = () => {
   const [trainings, setTrainings] = useState<Training[]>([]);
@@ -10,6 +10,7 @@ const TrainingList: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
   const [newTraining, setNewTraining] = useState({
     date: '',
@@ -104,6 +105,40 @@ const TrainingList: React.FC = () => {
 
   if (loading) return <div>Chargement...</div>;
 
+  const renderTrainingGrid = (training: Training) => (
+    <div key={training.id} className="bg-card rounded-xl border border-border p-4 flex flex-col gap-3 hover:border-primary/40 transition-colors">
+      <div className="flex items-center justify-between gap-2">
+        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold
+          ${training.type === 'Match' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' :
+            training.type === 'Tournoi' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300' :
+            training.type === 'Stage' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300' :
+            training.type === 'Récupération' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' :
+            'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'}`}>
+          {training.type}
+        </span>
+        {new Date(training.date) >= now && <span className="text-xs text-primary font-medium">À venir</span>}
+      </div>
+      <div className="text-sm space-y-1">
+        <p className="flex items-center gap-1 font-medium text-foreground">
+          <Calendar size={13} className="text-muted-foreground shrink-0" />
+          {new Date(training.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
+        </p>
+        <p className="flex items-center gap-1 text-muted-foreground">
+          <Clock size={13} className="shrink-0" />
+          {new Date(training.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} · {training.duration} min
+        </p>
+        {training.location && <p className="text-muted-foreground text-xs">📍 {training.location}</p>}
+        {training.opponent && <p className="text-muted-foreground text-xs">🆚 {training.opponent}</p>}
+        {training.result && <p className="text-xs font-semibold text-primary">🏆 {training.result}</p>}
+      </div>
+      <div className="flex justify-end pt-1 border-t border-border">
+        <button onClick={() => handleDelete(training.id)} className="p-1.5 text-muted-foreground hover:text-destructive rounded-full hover:bg-muted">
+          <Trash2 size={14} />
+        </button>
+      </div>
+    </div>
+  );
+
   const renderTrainingCard = (training: Training) => (
     <div key={training.id} className="bg-card rounded-xl border border-border p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-primary/40 transition-colors">
       <div className="flex-1">
@@ -151,13 +186,19 @@ const TrainingList: React.FC = () => {
             {selectedCategoryObj ? `Catégorie ${selectedCategoryObj.name}` : 'Entraînements'}
           </h1>
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 flex items-center gap-2"
-        >
-          <Plus size={20} />
-          Planifier une séance
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 border border-input rounded-lg p-1 bg-background">
+            <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Vue liste"><LayoutList size={15} /></button>
+            <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Vue grille"><LayoutGrid size={15} /></button>
+          </div>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 flex items-center gap-2"
+          >
+            <Plus size={20} />
+            Planifier une séance
+          </button>
+        </div>
       </div>
 
       {/* Category Cards — shown only when no category selected */}
@@ -195,6 +236,8 @@ const TrainingList: React.FC = () => {
             </h2>
             {seances.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-xl border border-dashed border-border">Aucune séance planifiée.</div>
+            ) : viewMode === 'grid' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">{seances.map(renderTrainingGrid)}</div>
             ) : (
               <div className="space-y-3">{seances.map(renderTrainingCard)}</div>
             )}
@@ -207,6 +250,8 @@ const TrainingList: React.FC = () => {
             </h2>
             {evenementsAvenir.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-xl border border-dashed border-border">Aucun match ou tournoi à venir.</div>
+            ) : viewMode === 'grid' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">{evenementsAvenir.map(renderTrainingGrid)}</div>
             ) : (
               <div className="space-y-3">{evenementsAvenir.map(renderTrainingCard)}</div>
             )}
@@ -218,7 +263,10 @@ const TrainingList: React.FC = () => {
               <h2 className="text-lg font-semibold text-muted-foreground mb-3 flex items-center gap-2">
                 Événements passés
               </h2>
-              <div className="space-y-3 opacity-70">{evenementsPasses.map(renderTrainingCard)}</div>
+              {viewMode === 'grid'
+                ? <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 opacity-70">{evenementsPasses.map(renderTrainingGrid)}</div>
+                : <div className="space-y-3 opacity-70">{evenementsPasses.map(renderTrainingCard)}</div>
+              }
             </section>
           )}
         </div>

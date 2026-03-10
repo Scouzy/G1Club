@@ -151,17 +151,33 @@ const Sidebar: React.FC = () => {
 
   useEffect(() => {
     if (!user) return;
+    const countGroupUnread = () => {
+      try {
+        const map: Record<string, string> = JSON.parse(localStorage.getItem('group_last_read') ?? '{}');
+        return api.get<any[]>('/groups').then(r => {
+          const groups: any[] = r.data;
+          return groups.filter(g => {
+            const lastRead = map[g.id];
+            if (!lastRead) return true;
+            return new Date(g.updatedAt) > new Date(lastRead);
+          }).length;
+        }).catch(() => 0);
+      } catch { return Promise.resolve(0); }
+    };
     const fetchUnread = () => {
-      api.get<{ count: number }>('/messages/unread-count')
-        .then(r => setUnreadCount(r.data.count))
-        .catch(() => {});
+      Promise.all([
+        api.get<{ count: number }>('/messages/unread-count').then(r => r.data.count).catch(() => 0),
+        countGroupUnread(),
+      ]).then(([msgs, grps]) => setUnreadCount(msgs + grps));
     };
     fetchUnread();
-    const interval = setInterval(fetchUnread, 30000);
+    const interval = setInterval(fetchUnread, 15000);
     window.addEventListener('messages-read', fetchUnread);
+    window.addEventListener('storage', fetchUnread);
     return () => {
       clearInterval(interval);
       window.removeEventListener('messages-read', fetchUnread);
+      window.removeEventListener('storage', fetchUnread);
     };
   }, [user]);
 

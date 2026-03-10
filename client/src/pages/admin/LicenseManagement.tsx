@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import api from '../../lib/axios';
-import { Plus, X, Pencil, Trash2, Search, AlertTriangle, CheckCircle, Clock, XCircle, FileText, Wallet, RefreshCw, Download, Upload } from 'lucide-react';
+import { Plus, X, Pencil, Trash2, Search, AlertTriangle, CheckCircle, Clock, XCircle, FileText, Wallet, RefreshCw, Download, Upload, LayoutList, LayoutGrid } from 'lucide-react';
 import LicencePaymentsPanel from '../../components/LicencePaymentsPanel';
 
 interface Sportif {
@@ -74,6 +74,7 @@ const LicenseManagement: React.FC = () => {
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ created: number; skipped: number; errors: string[] } | null>(null);
   const importFileRef = useRef<HTMLInputElement>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
   useEffect(() => {
     loadAll();
@@ -334,7 +335,7 @@ const LicenseManagement: React.FC = () => {
         </div>
       )}
 
-      {/* Filters */}
+      {/* Filters + View Toggle */}
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -366,9 +367,74 @@ const LicenseManagement: React.FC = () => {
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </select>
+        <div className="flex items-center gap-1 border border-input rounded-lg p-1 bg-background">
+          <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Vue liste"><LayoutList size={15} /></button>
+          <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Vue grille"><LayoutGrid size={15} /></button>
+        </div>
       </div>
 
-      {/* Table */}
+      {/* Grid View */}
+      {viewMode === 'grid' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filtered.length === 0 ? (
+            <div className="col-span-full text-center py-12 text-muted-foreground">Aucune licence trouvée.</div>
+          ) : filtered.map(l => {
+            const sc = STATUS_CONFIG[l.status] ?? STATUS_CONFIG.ACTIVE;
+            const StatusIcon = sc.icon;
+            const expiring = isExpiringSoon(l.expiryDate) && l.status === 'ACTIVE';
+            return (
+              <div key={l.id} className="bg-card border border-border rounded-xl p-4 flex flex-col gap-3 hover:border-primary/40 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-sm font-bold text-primary">
+                    {l.sportif.firstName[0]}{l.sportif.lastName[0]}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-foreground truncate">{l.sportif.firstName} {l.sportif.lastName}</p>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                      style={l.sportif.category.color ? { backgroundColor: `${l.sportif.category.color}20`, color: l.sportif.category.color } : {}}>
+                      {l.sportif.category.name}
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">N°</span>
+                    <span className="font-mono font-medium text-foreground">{l.number}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Type</span>
+                    <span className="text-foreground">{l.type}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Statut</span>
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${sc.color}`}>
+                      <StatusIcon size={10} />{sc.label}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Expiration</span>
+                    <span className={expiring ? 'text-orange-500 font-semibold text-xs' : 'text-muted-foreground text-xs'}>
+                      {expiring && <AlertTriangle size={11} className="inline mr-0.5" />}
+                      {new Date(l.expiryDate).toLocaleDateString('fr-FR')}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 pt-1 border-t border-border">
+                  <button onClick={() => openRenew(l)} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-green-50 dark:bg-green-950/40 text-green-600 dark:text-green-400 text-xs font-medium border border-green-200 dark:border-green-800">
+                    <RefreshCw size={11} /> Renouveler
+                  </button>
+                  <button onClick={() => setPaymentsLicence(l)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground" title="Paiements"><Wallet size={14} /></button>
+                  <button onClick={() => openEdit(l)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground" title="Modifier"><Pencil size={14} /></button>
+                  <button onClick={() => setDeleteId(l.id)} className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-muted-foreground hover:text-red-600" title="Supprimer"><Trash2 size={14} /></button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Table (List View) */}
+      {viewMode === 'list' && (
       <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto -mx-0">
           <table className="w-full text-sm min-w-[700px]">
@@ -472,6 +538,7 @@ const LicenseManagement: React.FC = () => {
           </table>
         </div>
       </div>
+      )}
 
       {/* Modal Create/Edit */}
       {showModal && (
