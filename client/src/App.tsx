@@ -2,35 +2,49 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ClubProvider } from './context/ClubContext';
-import ClubSettingsPage from './pages/admin/ClubSettingsPage';
-import RegisterClub from './pages/RegisterClub';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import UserManagement from './pages/admin/UserManagement';
-import LicenseManagement from './pages/admin/LicenseManagement';
-import StageManagement from './pages/admin/StageManagement';
-import CategoryManagement from './pages/admin/CategoryManagement';
-import CoachList from './pages/admin/CoachList';
-import CoachDashboard from './pages/coach/CoachDashboard';
-import SportifList from './pages/coach/SportifList';
-import SportifDetails from './pages/coach/SportifDetails';
-import CoachProfile from './pages/coach/CoachProfile';
-import EventsPage from './pages/coach/EventsPage';
-import AttendancePage from './pages/coach/AttendancePage';
-import CoachTeam from './pages/coach/CoachTeam';
-import MessagesPage from './pages/coach/MessagesPage';
-import SportifDashboard from './pages/sportif/SportifDashboard';
-import SportifEvents from './pages/sportif/SportifEvents';
-import Messages from './pages/Messages';
-import ProtectedRoute from './components/ProtectedRoute';
-import LandingPage from './pages/LandingPage';
-import VerifyEmail from './pages/VerifyEmail';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import SubscribePage from './pages/SubscribePage';
-import SubscribeSuccess from './pages/SubscribeSuccess';
 import { RefreshProvider } from './context/RefreshContext';
+import { Suspense, lazy } from 'react';
+import ProtectedRoute from './components/ProtectedRoute';
+
+const LandingPage      = lazy(() => import('./pages/LandingPage'));
+const Login            = lazy(() => import('./pages/Login'));
+const Register         = lazy(() => import('./pages/Register'));
+const RegisterClub     = lazy(() => import('./pages/RegisterClub'));
+const VerifyEmail      = lazy(() => import('./pages/VerifyEmail'));
+const ForgotPassword   = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword    = lazy(() => import('./pages/ResetPassword'));
+const SubscribePage    = lazy(() => import('./pages/SubscribePage'));
+const SubscribeSuccess = lazy(() => import('./pages/SubscribeSuccess'));
+const Dashboard        = lazy(() => import('./pages/Dashboard'));
+const Messages         = lazy(() => import('./pages/Messages'));
+
+const UserManagement   = lazy(() => import('./pages/admin/UserManagement'));
+const CategoryManagement = lazy(() => import('./pages/admin/CategoryManagement'));
+const CoachList        = lazy(() => import('./pages/admin/CoachList'));
+const LicenseManagement = lazy(() => import('./pages/admin/LicenseManagement'));
+const StageManagement  = lazy(() => import('./pages/admin/StageManagement'));
+const ClubSettingsPage = lazy(() => import('./pages/admin/ClubSettingsPage'));
+
+const CoachDashboard   = lazy(() => import('./pages/coach/CoachDashboard'));
+const CoachProfile     = lazy(() => import('./pages/coach/CoachProfile'));
+const SportifList      = lazy(() => import('./pages/coach/SportifList'));
+const SportifDetails   = lazy(() => import('./pages/coach/SportifDetails'));
+const EventsPage       = lazy(() => import('./pages/coach/EventsPage'));
+const AttendancePage   = lazy(() => import('./pages/coach/AttendancePage'));
+const CoachTeam        = lazy(() => import('./pages/coach/CoachTeam'));
+const MessagesPage     = lazy(() => import('./pages/coach/MessagesPage'));
+
+const SportifDashboard = lazy(() => import('./pages/sportif/SportifDashboard'));
+const SportifEvents    = lazy(() => import('./pages/sportif/SportifEvents'));
+
+const PageLoader = () => (
+  <div className="flex items-center justify-center h-screen bg-background">
+    <div className="flex flex-col items-center gap-3">
+      <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      <span className="text-sm text-muted-foreground">Chargement...</span>
+    </div>
+  </div>
+);
 
 function App() {
   return (
@@ -39,6 +53,7 @@ function App() {
         <ThemeProvider>
           <ClubProvider>
             <RefreshProvider>
+            <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/verify-email" element={<VerifyEmail />} />
@@ -89,6 +104,7 @@ function App() {
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Route>
             </Routes>
+            </Suspense>
             </RefreshProvider>
           </ClubProvider>
         </ThemeProvider>
