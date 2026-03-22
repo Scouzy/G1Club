@@ -67,9 +67,21 @@ const ClubSettingsPage: React.FC = () => {
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) { setError('Image trop lourde (max 2 Mo)'); return; }
+    if (file.size > 5 * 1024 * 1024) { setError('Image trop lourde (max 5 Mo)'); return; }
     const reader = new FileReader();
-    reader.onload = () => setLogoUrl(reader.result as string);
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 256;
+        const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width  = Math.round(img.width  * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+        setLogoUrl(canvas.toDataURL('image/png', 0.85));
+      };
+      img.src = ev.target!.result as string;
+    };
     reader.readAsDataURL(file);
   };
 
