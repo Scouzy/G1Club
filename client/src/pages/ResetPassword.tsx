@@ -55,7 +55,7 @@ const ResetPassword: React.FC = () => {
         </div>
 
         <div className="text-center">
-          <img src="/Emblème stylisé avec médaille dorée.png" alt="G1Club" className="mx-auto mb-4" style={{ width: '280px', height: '280px', objectFit: 'contain' }} />
+          <img src="/G1C.png" alt="G1Club" className="mx-auto mb-4" style={{ width: '280px', height: '280px', objectFit: 'contain' }} />
           <h1 className="text-2xl font-extrabold text-foreground tracking-tight">Nouveau mot de passe</h1>
           <p className="mt-1 text-sm text-muted-foreground">Choisissez un nouveau mot de passe pour votre compte</p>
         </div>

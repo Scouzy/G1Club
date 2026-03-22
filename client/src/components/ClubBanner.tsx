@@ -26,7 +26,7 @@ const ClubBanner: React.FC<ClubBannerProps> = ({ title }) => {
         <>
           <div className="h-9 w-9 rounded-lg overflow-hidden flex items-center justify-center shrink-0 bg-white shadow-sm border border-border">
             <img
-              src={club.logoUrl || '/Emblème stylisé avec médaille dorée.png'}
+              src={club.logoUrl || '/G1C.png'}
               alt={club.clubName}
               className="h-8 w-8 object-contain"
             />
