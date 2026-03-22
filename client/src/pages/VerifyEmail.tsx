@@ -33,9 +33,7 @@ const VerifyEmail: React.FC = () => {
 
         {/* Logo */}
         <div className="flex justify-center">
-          <div className="h-20 w-20 rounded-2xl flex items-center justify-center" style={{ background: '#1e2d45' }}>
-            <img src="/logo_G1C_transparent.png" alt="G1Club" className="h-14 w-14 object-contain" style={{ mixBlendMode: 'screen' }} />
-          </div>
+          <img src="/Emblème stylisé avec médaille dorée.png" alt="G1Club" style={{ width: '280px', height: '280px', objectFit: 'contain' }} />
         </div>
 
         <div className="bg-card border border-border rounded-xl p-10 shadow-sm space-y-5">

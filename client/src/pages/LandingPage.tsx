@@ -103,9 +103,7 @@ const LandingPage: React.FC = () => {
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-[#0a0f1e]/95 backdrop-blur border-b border-white/10 shadow-xl' : 'bg-transparent'}`}>
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg flex items-center justify-center" style={{ background: '#1e2d45' }}>
-              <img src="/logo_G1C_transparent.png" alt="G1Club" className="h-7 w-7 object-contain" />
-            </div>
+            <img src="/Emblème stylisé avec médaille dorée.png" alt="G1Club" className="h-9 w-9 object-contain" />
             <span className="text-xl font-bold tracking-tight">G1Club</span>
           </div>
 
@@ -157,7 +155,7 @@ const LandingPage: React.FC = () => {
           {/* Logo centré en grand */}
           <div className="flex justify-center mb-8">
             <img
-              src="/logo_G1C_transparent.png"
+              src="/Emblème stylisé avec médaille dorée.png"
               alt="G1Club"
               className="h-44 w-44 md:h-64 md:w-64 object-contain"
               style={{ mixBlendMode: 'screen' }}
@@ -431,9 +429,7 @@ const LandingPage: React.FC = () => {
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full bg-blue-600/20 blur-[80px]" />
             </div>
             <div className="relative z-10">
-              <div className="h-36 w-36 rounded-3xl mx-auto mb-6 flex items-center justify-center" style={{ background: '#1e2d45' }}>
-                <img src="/logo_G1C_transparent.png" alt="G1Club" className="h-28 w-28 object-contain" style={{ mixBlendMode: 'screen' }} />
-              </div>
+              <img src="/Emblème stylisé avec médaille dorée.png" alt="G1Club" className="mx-auto mb-6 object-contain" style={{ width: '180px', height: '180px' }} />
               <h2 className="text-4xl md:text-5xl font-extrabold mb-4">Prêt à transformer<br />votre club ?</h2>
               <p className="text-white/60 text-lg mb-10 max-w-xl mx-auto">
                 Rejoignez des centaines de clubs qui font confiance à G1Club pour gérer leurs équipes au quotidien.
@@ -455,9 +451,7 @@ const LandingPage: React.FC = () => {
       <footer className="border-t border-white/8 py-10 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg flex items-center justify-center" style={{ background: '#1e2d45' }}>
-              <img src="/logo_G1C_transparent.png" alt="G1Club" className="h-6 w-6 object-contain" />
-            </div>
+            <img src="/Emblème stylisé avec médaille dorée.png" alt="G1Club" className="h-8 w-8 object-contain" />
             <span className="font-bold text-white">G1Club</span>
           </div>
           <p className="text-xs text-white/30">© {new Date().getFullYear()} G1Club — Plateforme de gestion sportive. Tous droits réservés.</p>

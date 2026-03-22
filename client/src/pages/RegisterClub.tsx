@@ -49,16 +49,12 @@ const RegisterClub: React.FC = () => {
 
         {/* Header */}
         <div className="text-center">
-          <div
-            className="mx-auto mb-4 flex items-center justify-center"
-            style={{ width: '220px', height: '220px', borderRadius: '36px', background: '#1e2d45' }}
-          >
-            <img
-              src="/logo_G1C_transparent.png"
-              alt="G1Club"
-              style={{ width: '190px', height: '190px', objectFit: 'contain' }}
-            />
-          </div>
+          <img
+            src="/Emblème stylisé avec médaille dorée.png"
+            alt="G1Club"
+            className="mx-auto mb-4"
+            style={{ width: '280px', height: '280px', objectFit: 'contain' }}
+          />
           <h1 className="text-3xl font-bold text-foreground">Créer votre club</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Inscrivez votre club sur G1Club et gérez vos équipes

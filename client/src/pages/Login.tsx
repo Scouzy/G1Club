@@ -80,7 +80,7 @@ const Login: React.FC = () => {
     }
   };
 
-  const logoSrc = selectedClub?.logoUrl || '/logo_G1C_transparent.png';
+  const logoSrc = selectedClub?.logoUrl || '/Emblème stylisé avec médaille dorée.png';
   const logoLabel = selectedClub?.name || 'G1Club';
 
   return (
@@ -96,16 +96,12 @@ const Login: React.FC = () => {
 
         {/* Logo */}
         <div className="text-center">
-          <div
-            className="mx-auto mb-4 flex items-center justify-center"
-            style={{ width: '220px', height: '220px', borderRadius: '36px', background: '#1e2d45' }}
-          >
-            <img
-              src={logoSrc}
-              alt={logoLabel}
-              style={{ width: '190px', height: '190px', objectFit: 'contain' }}
-            />
-          </div>
+          <img
+            src={logoSrc}
+            alt={logoLabel}
+            className="mx-auto mb-4"
+            style={{ width: '280px', height: '280px', objectFit: 'contain' }}
+          />
           <h1 className="text-3xl font-extrabold text-foreground tracking-tight">
             {selectedClub ? selectedClub.name : 'G1Club'}
           </h1>
@@ -149,7 +145,7 @@ const Login: React.FC = () => {
                     >
                       <div className="h-9 w-9 rounded-lg overflow-hidden shrink-0 flex items-center justify-center" style={{ background: '#1e2d45' }}>
                         <img
-                          src={c.logoUrl || '/logo_G1C_transparent.png'}
+                          src={c.logoUrl || '/Emblème stylisé avec médaille dorée.png'}
                           alt={c.name}
                           className="h-8 w-8 object-contain"
                         />

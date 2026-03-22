@@ -252,7 +252,7 @@ const Sidebar: React.FC = () => {
           <div className="h-16 flex items-center px-4">
             <div className="h-9 w-9 rounded-lg shrink-0 overflow-hidden flex items-center justify-center" style={{ background: '#1e2d45' }}>
               <img
-                src={club.logoUrl || '/logo_G1C_transparent.png'}
+                src={club.logoUrl || '/Emblème stylisé avec médaille dorée.png'}
                 alt={club.clubName || 'G1Club'}
                 className="h-8 w-8 object-contain"
               />
@@ -310,7 +310,7 @@ const Sidebar: React.FC = () => {
                     >
                       <div className="h-6 w-6 rounded shrink-0 overflow-hidden flex items-center justify-center" style={{ background: '#1e2d45' }}>
                         <img
-                          src={c.logoUrl || '/logo_G1C_transparent.png'}
+                          src={c.logoUrl || '/Emblème stylisé avec médaille dorée.png'}
                           alt={c.name}
                           className="h-5 w-5 object-contain"
                         />
@@ -430,10 +430,15 @@ const Sidebar: React.FC = () => {
                   key={item.label}
                   to={item.path!}
                   onClick={closeMobile}
+                  style={active ? {
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 60%, rgba(255,255,255,0.12) 100%)',
+                    boxShadow: '0 2px 12px rgba(99,179,237,0.15), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.1)',
+                    backdropFilter: 'blur(8px)',
+                  } : undefined}
                   className={`flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-medium transition-all border ${
                     active
-                      ? 'bg-white/10 border-white/20 text-white shadow-inner'
-                      : 'border-transparent text-white/60 hover:bg-white/8 hover:border-white/10 hover:text-white'
+                      ? 'border-white/25 text-white'
+                      : 'border-transparent text-white/60 hover:text-white'
                   }`}
                 >
                   <item.icon size={17} className={active ? 'text-white' : 'text-white/40'} />
@@ -470,10 +475,15 @@ const Sidebar: React.FC = () => {
                           key={sub.label}
                           to={sub.path!}
                           onClick={closeMobile}
-                          className={`flex items-center gap-2.5 px-3 py-2 rounded-full text-sm transition-all border ${
+                          style={active ? {
+                            background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 60%, rgba(255,255,255,0.12) 100%)',
+                            boxShadow: '0 2px 12px rgba(99,179,237,0.15), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.1)',
+                            backdropFilter: 'blur(8px)',
+                          } : undefined}
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-full text-sm transition-all border ${
                             active
-                              ? 'bg-white/10 border-white/20 text-white font-medium shadow-inner'
-                              : 'border-transparent text-white/60 hover:bg-white/8 hover:border-white/10 hover:text-white'
+                              ? 'border-white/25 text-white font-medium'
+                              : 'border-transparent text-white/60 hover:text-white'
                           }`}
                         >
                           <sub.icon size={15} className={active ? 'text-white' : 'text-white/40'} />
