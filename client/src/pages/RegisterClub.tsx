@@ -50,7 +50,7 @@ const RegisterClub: React.FC = () => {
         {/* Header */}
         <div className="text-center">
           <img
-            src="/G1C.png"
+            src="/logo-g1club.png"
             alt="G1Club"
             className="mx-auto mb-4"
             style={{ width: '280px', height: '280px', objectFit: 'contain' }}

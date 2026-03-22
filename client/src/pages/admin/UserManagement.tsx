@@ -178,7 +178,7 @@ const UserManagement: React.FC = () => {
                 <div className="flex items-center gap-3 px-5 py-3 border-b border-border bg-muted/30">
                   <div className="h-8 w-8 rounded-lg overflow-hidden flex items-center justify-center bg-white shadow-sm border border-border shrink-0">
                     <img
-                      src={clubGroup.logoUrl || '/G1C.png'}
+                      src={clubGroup.logoUrl || '/logo-g1club.png'}
                       alt={clubGroup.clubName}
                       className="h-7 w-7 object-contain"
                     />

@@ -34,7 +34,7 @@ const ForgotPassword: React.FC = () => {
         </div>
 
         <div className="text-center">
-          <img src="/G1C.png" alt="G1Club" className="mx-auto mb-4" style={{ width: '280px', height: '280px', objectFit: 'contain' }} />
+          <img src="/logo-g1club.png" alt="G1Club" className="mx-auto mb-4" style={{ width: '280px', height: '280px', objectFit: 'contain' }} />
           <h1 className="text-2xl font-extrabold text-foreground tracking-tight">Mot de passe oublié</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Entrez votre email pour recevoir un lien de réinitialisation

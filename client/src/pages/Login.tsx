@@ -80,7 +80,7 @@ const Login: React.FC = () => {
     }
   };
 
-  const logoSrc = selectedClub?.logoUrl || '/G1C.png';
+  const logoSrc = selectedClub?.logoUrl || '/logo-g1club.png';
   const logoLabel = selectedClub?.name || 'G1Club';
 
   return (
@@ -145,7 +145,7 @@ const Login: React.FC = () => {
                     >
                       <div className="h-9 w-9 rounded-lg overflow-hidden shrink-0 flex items-center justify-center" style={{ background: '#1e2d45' }}>
                         <img
-                          src={c.logoUrl || '/G1C.png'}
+                          src={c.logoUrl || '/logo-g1club.png'}
                           alt={c.name}
                           className="h-8 w-8 object-contain"
                         />

@@ -252,7 +252,7 @@ const Sidebar: React.FC = () => {
           <div className="h-16 flex items-center px-4">
             <div className="h-9 w-9 rounded-lg shrink-0 overflow-hidden flex items-center justify-center" style={{ background: '#1e2d45' }}>
               <img
-                src={club.logoUrl || '/G1C.png'}
+                src={club.logoUrl || '/logo-g1club.png'}
                 alt={club.clubName || 'G1Club'}
                 className="h-8 w-8 object-contain"
               />
@@ -310,7 +310,7 @@ const Sidebar: React.FC = () => {
                     >
                       <div className="h-6 w-6 rounded shrink-0 overflow-hidden flex items-center justify-center" style={{ background: '#1e2d45' }}>
                         <img
-                          src={c.logoUrl || '/G1C.png'}
+                          src={c.logoUrl || '/logo-g1club.png'}
                           alt={c.name}
                           className="h-5 w-5 object-contain"
                         />

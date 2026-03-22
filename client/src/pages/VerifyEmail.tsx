@@ -33,7 +33,7 @@ const VerifyEmail: React.FC = () => {
 
         {/* Logo */}
         <div className="flex justify-center">
-          <img src="/G1C.png" alt="G1Club" style={{ width: '280px', height: '280px', objectFit: 'contain' }} />
+          <img src="/logo-g1club.png" alt="G1Club" style={{ width: '280px', height: '280px', objectFit: 'contain' }} />
         </div>
 
         <div className="bg-card border border-border rounded-xl p-10 shadow-sm space-y-5">

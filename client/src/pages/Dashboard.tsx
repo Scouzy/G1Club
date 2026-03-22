@@ -158,7 +158,7 @@ const Dashboard: React.FC = () => {
                 {/* En-tête club avec logo */}
                 <div className="flex items-center gap-3 px-5 py-3 border-b border-border bg-muted/30">
                   <div className="h-10 w-10 rounded-lg overflow-hidden flex items-center justify-center bg-white shadow-sm border border-border shrink-0">
-                    <img src={cs.club.logoUrl || '/G1C.png'} alt={cs.club.name} className="h-9 w-9 object-contain" />
+                    <img src={cs.club.logoUrl || '/logo-g1club.png'} alt={cs.club.name} className="h-9 w-9 object-contain" />
                   </div>
                   <h2 className="font-bold text-foreground text-base">{cs.club.name}</h2>
                 </div>
