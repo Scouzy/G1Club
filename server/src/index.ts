@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import bcrypt from 'bcryptjs';
 import prisma from './utils/prisma';
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env'), override: true });
@@ -13,8 +14,8 @@ app.use(cors());
 // Stripe webhook (/api/stripe/webhook) uses express.raw — registered in stripeRoutes before express.json()
 app.use('/api/stripe', stripeRoutes);
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use('/api', express.json({ limit: '10mb' }));
+app.use('/api', express.urlencoded({ limit: '10mb', extended: true }));
 
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
@@ -65,7 +66,6 @@ const startServer = async () => {
     const { default: AdminJS } = await import('adminjs');
     const { default: AdminJSExpress } = await import('@adminjs/express');
     const AdminJSPrisma = await import('@adminjs/prisma');
-    const { default: session } = await import('express-session');
 
     // Extract Adapter Components handling potential ESM/CJS interop
     const Database = AdminJSPrisma.Database || (AdminJSPrisma as any).default?.Database;
@@ -79,16 +79,6 @@ const startServer = async () => {
     console.log('AdminJS Adapter imported successfully.');
     AdminJS.registerAdapter({ Database, Resource });
     console.log('AdminJS Adapter registered.');
-
-    // Session setup (Required for AdminJS)
-    app.use(session({
-      secret: process.env.JWT_SECRET || 'secret',
-      resave: false,
-      saveUninitialized: true,
-      cookie: {
-        secure: process.env.NODE_ENV === 'production',
-      }
-    }));
 
     // AdminJS Options
     const adminOptions = {
@@ -270,7 +260,35 @@ const startServer = async () => {
     };
 
     const admin = new AdminJS(adminOptions);
-    const adminRouter = AdminJSExpress.buildRouter(admin);
+
+    const adminRouter = AdminJSExpress.buildAuthenticatedRouter(
+      admin,
+      {
+        authenticate: async (email: string, password: string) => {
+          console.log('[AdminJS Auth] Tentative de connexion pour:', email);
+          const user = await prisma.user.findUnique({ where: { email } });
+          if (!user) { console.log('[AdminJS Auth] Utilisateur non trouvé'); return null; }
+          if (user.role !== 'ADMIN') { console.log('[AdminJS Auth] Rôle insuffisant:', user.role); return null; }
+          const valid = await bcrypt.compare(password, user.password);
+          console.log('[AdminJS Auth] Mot de passe valide:', valid);
+          if (!valid) return null;
+          console.log('[AdminJS Auth] Connexion réussie pour:', email);
+          return { email: user.email, role: user.role };
+        },
+        cookieName: 'adminjs',
+        cookiePassword: process.env.JWT_SECRET || 'adminjs-secret-change-me',
+      },
+      null,
+      {
+        resave: false,
+        saveUninitialized: true,
+        secret: process.env.JWT_SECRET || 'adminjs-secret-change-me',
+        cookie: {
+          secure: process.env.NODE_ENV === 'production',
+          httpOnly: true,
+        },
+      }
+    );
     app.use(admin.options.rootPath, adminRouter);
 
     app.listen(port, () => {
