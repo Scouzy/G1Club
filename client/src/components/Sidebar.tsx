@@ -431,14 +431,15 @@ const Sidebar: React.FC = () => {
                   to={item.path!}
                   onClick={closeMobile}
                   style={active ? {
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 60%, rgba(255,255,255,0.12) 100%)',
-                    boxShadow: '0 2px 12px rgba(99,179,237,0.15), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.1)',
-                    backdropFilter: 'blur(8px)',
+                    background: 'linear-gradient(135deg, rgba(99,179,237,0.35) 0%, rgba(139,92,246,0.25) 50%, rgba(59,130,246,0.30) 100%)',
+                    boxShadow: '0 4px 15px rgba(99,179,237,0.3), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.2)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(147,197,253,0.4)',
                   } : undefined}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-medium transition-all border ${
+                  className={`flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
                     active
-                      ? 'border-white/25 text-white'
-                      : 'border-transparent text-white/60 hover:text-white'
+                      ? 'text-white'
+                      : 'border border-transparent text-white/60 hover:bg-white/8 hover:text-white'
                   }`}
                 >
                   <item.icon size={17} className={active ? 'text-white' : 'text-white/40'} />
@@ -476,14 +477,15 @@ const Sidebar: React.FC = () => {
                           to={sub.path!}
                           onClick={closeMobile}
                           style={active ? {
-                            background: 'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 60%, rgba(255,255,255,0.12) 100%)',
-                            boxShadow: '0 2px 12px rgba(99,179,237,0.15), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.1)',
-                            backdropFilter: 'blur(8px)',
+                            background: 'linear-gradient(135deg, rgba(99,179,237,0.35) 0%, rgba(139,92,246,0.25) 50%, rgba(59,130,246,0.30) 100%)',
+                            boxShadow: '0 4px 15px rgba(99,179,237,0.3), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.2)',
+                            backdropFilter: 'blur(10px)',
+                            border: '1px solid rgba(147,197,253,0.4)',
                           } : undefined}
-                        className={`flex items-center gap-2.5 px-3 py-2 rounded-full text-sm transition-all border ${
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-full text-sm transition-all ${
                             active
-                              ? 'border-white/25 text-white font-medium'
-                              : 'border-transparent text-white/60 hover:text-white'
+                              ? 'text-white font-medium'
+                              : 'border border-transparent text-white/60 hover:bg-white/8 hover:text-white'
                           }`}
                         >
                           <sub.icon size={15} className={active ? 'text-white' : 'text-white/40'} />

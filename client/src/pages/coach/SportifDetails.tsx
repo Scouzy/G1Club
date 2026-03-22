@@ -299,7 +299,12 @@ const SportifDetails: React.FC = () => {
       </button>
 
       {/* Header / Profile Card */}
-      <div className="bg-card rounded-xl shadow-sm border border-border p-6">
+      <div className="rounded-xl p-6" style={{
+        background: 'linear-gradient(135deg, rgba(59,130,246,0.12) 0%, rgba(139,92,246,0.08) 100%)',
+        boxShadow: '0 8px 32px rgba(59,130,246,0.12), inset 0 1px 0 rgba(255,255,255,0.15)',
+        backdropFilter: 'blur(12px)',
+        border: '1px solid rgba(99,179,237,0.2)',
+      }}>
         <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
           {/* Avatar with optional photo upload */}
           <div className="relative flex-shrink-0 group">
@@ -374,7 +379,11 @@ const SportifDetails: React.FC = () => {
             )}
           </div>
           {/* KPI présences */}
-          <div className="shrink-0 text-center bg-muted/30 rounded-xl px-6 py-4 border border-border">
+          <div className="shrink-0 text-center rounded-xl px-6 py-4" style={{
+            background: 'linear-gradient(135deg, rgba(99,179,237,0.25) 0%, rgba(59,130,246,0.15) 100%)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)',
+            border: '1px solid rgba(99,179,237,0.3)',
+          }}>
             <div className="text-3xl font-bold text-primary">{attendanceRate}%</div>
             <div className="text-xs text-muted-foreground mt-1">Taux de présence</div>
             <div className="text-xs text-muted-foreground">{presentSessions}/{totalSessions} séances</div>
@@ -411,25 +420,25 @@ const SportifDetails: React.FC = () => {
         {/* ===== VUE D'ENSEMBLE ===== */}
         {activeTab === 'overview' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-card p-5 rounded-xl border border-border text-center">
-              <div className="text-3xl font-bold text-green-400">{presentSessions}</div>
-              <div className="text-sm text-muted-foreground mt-1">Présences</div>
+            <div className="p-5 rounded-xl text-center" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.25) 0%, rgba(5,150,105,0.12) 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)', border: '1px solid rgba(52,211,153,0.3)' }}>
+              <div className="text-3xl font-bold text-emerald-300">{presentSessions}</div>
+              <div className="text-sm text-emerald-200/60 mt-1">Présences</div>
             </div>
-            <div className="bg-card p-5 rounded-xl border border-border text-center">
-              <div className="text-3xl font-bold text-red-400">{totalSessions - presentSessions}</div>
-              <div className="text-sm text-muted-foreground mt-1">Absences</div>
+            <div className="p-5 rounded-xl text-center" style={{ background: 'linear-gradient(135deg, rgba(239,68,68,0.25) 0%, rgba(185,28,28,0.12) 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)', border: '1px solid rgba(248,113,113,0.3)' }}>
+              <div className="text-3xl font-bold text-red-300">{totalSessions - presentSessions}</div>
+              <div className="text-sm text-red-200/60 mt-1">Absences</div>
             </div>
-            <div className="bg-card p-5 rounded-xl border border-border text-center">
-              <div className="text-3xl font-bold text-primary">{attendanceRate}%</div>
-              <div className="text-sm text-muted-foreground mt-1">Taux de présence</div>
+            <div className="p-5 rounded-xl text-center" style={{ background: 'linear-gradient(135deg, rgba(99,179,237,0.25) 0%, rgba(59,130,246,0.12) 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)', border: '1px solid rgba(99,179,237,0.3)' }}>
+              <div className="text-3xl font-bold text-blue-300">{attendanceRate}%</div>
+              <div className="text-sm text-blue-200/60 mt-1">Taux de présence</div>
             </div>
-            <div className="bg-card p-5 rounded-xl border border-border text-center">
-              <div className="text-3xl font-bold text-foreground">{evaluations.length}</div>
-              <div className="text-sm text-muted-foreground mt-1">Évaluations</div>
+            <div className="p-5 rounded-xl text-center" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.25) 0%, rgba(109,40,217,0.12) 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)', border: '1px solid rgba(167,139,250,0.3)' }}>
+              <div className="text-3xl font-bold text-violet-300">{evaluations.length}</div>
+              <div className="text-sm text-violet-200/60 mt-1">Évaluations</div>
             </div>
             {/* 3 dernières séances */}
             {attendances.length > 0 && (
-              <div className="col-span-full bg-card rounded-xl border border-border p-5">
+              <div className="col-span-full rounded-xl p-5" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(139,92,246,0.07) 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12)', border: '1px solid rgba(99,179,237,0.15)' }}>
                 <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                   <TrendingUp size={16} className="text-primary" /> Dernières séances
                 </h3>
@@ -573,7 +582,7 @@ const SportifDetails: React.FC = () => {
                
                <div className="space-y-4">
                   {annotations.map(annotation => (
-                      <div key={annotation.id} className="bg-card p-4 rounded-lg shadow-sm border border-border">
+                      <div key={annotation.id} className="p-4 rounded-xl" style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(217,119,6,0.07) 100%)', boxShadow: '0 4px 16px rgba(245,158,11,0.08), inset 0 1px 0 rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)', border: '1px solid rgba(252,211,77,0.2)' }}>
                           <div className="flex justify-between items-start">
                               <div className="flex items-center gap-2 mb-2">
                                   <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
@@ -632,7 +641,7 @@ const SportifDetails: React.FC = () => {
                         const labelMap: Record<string, string> = { technique: 'Technique', endurance: 'Endurance', vitesse: 'Vitesse', mental: 'Mental' };
                         const colorMap: Record<string, string> = { technique: 'bg-blue-500', endurance: 'bg-green-500', vitesse: 'bg-orange-500', mental: 'bg-purple-500' };
                         return (
-                          <div key={evaluation.id} className="bg-card p-5 rounded-xl shadow-sm border border-border">
+                          <div key={evaluation.id} className="p-5 rounded-xl" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(59,130,246,0.08) 100%)', boxShadow: '0 4px 24px rgba(139,92,246,0.12), inset 0 1px 0 rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', border: '1px solid rgba(167,139,250,0.25)' }}>
                             <div className="flex justify-between items-start mb-4">
                               <div className="flex items-center gap-3">
                                 {avg !== null && (
@@ -745,7 +754,7 @@ const SportifDetails: React.FC = () => {
           return (
             <form onSubmit={handleSaveInfo} className="space-y-6">
               {/* Âge calculé */}
-              <div className="bg-card border border-border rounded-xl p-5">
+              <div className="rounded-xl p-5" style={{ background: 'linear-gradient(135deg, rgba(99,179,237,0.15) 0%, rgba(59,130,246,0.08) 100%)', boxShadow: '0 4px 20px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', border: '1px solid rgba(99,179,237,0.2)' }}>
                 <div className="flex items-center gap-4">
                   <div className="h-14 w-14 rounded-xl bg-primary/10 border border-primary/20 flex flex-col items-center justify-center shrink-0">
                     <span className="text-2xl font-bold text-primary leading-none">{age}</span>
@@ -761,7 +770,7 @@ const SportifDetails: React.FC = () => {
               </div>
 
               {/* Informations personnelles */}
-              <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+              <div className="rounded-xl p-5 space-y-4" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.12) 0%, rgba(109,40,217,0.07) 100%)', boxShadow: '0 4px 20px rgba(139,92,246,0.1), inset 0 1px 0 rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)', border: '1px solid rgba(167,139,250,0.2)' }}>
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <UserCheck size={15} className="text-primary" /> Identité
                 </h3>
@@ -783,7 +792,7 @@ const SportifDetails: React.FC = () => {
               </div>
 
               {/* Coordonnées */}
-              <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+              <div className="rounded-xl p-5 space-y-4" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(5,150,105,0.07) 100%)', boxShadow: '0 4px 20px rgba(16,185,129,0.1), inset 0 1px 0 rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)', border: '1px solid rgba(52,211,153,0.2)' }}>
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <Phone size={15} className="text-primary" /> Coordonnées
                 </h3>
@@ -792,7 +801,7 @@ const SportifDetails: React.FC = () => {
               </div>
 
               {/* Contacts parents */}
-              <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+              <div className="rounded-xl p-5 space-y-4" style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(217,119,6,0.07) 100%)', boxShadow: '0 4px 20px rgba(245,158,11,0.1), inset 0 1px 0 rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)', border: '1px solid rgba(252,211,77,0.2)' }}>
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <Phone size={15} className="text-primary" /> Contacts parentaux
                 </h3>

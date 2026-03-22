@@ -169,10 +169,15 @@ const EventsPage: React.FC = () => {
               <button
                 key={cat.id}
                 onClick={() => openCategory(cat)}
-                className={`relative flex flex-col items-center justify-center p-4 rounded-xl border-2 bg-card hover:shadow-md transition-all ${
-                  editable ? 'border-border hover:shadow-md' : 'border-border/50 opacity-70 hover:opacity-90'
+                className={`relative flex flex-col items-center justify-center p-4 rounded-xl transition-all ${
+                  !editable ? 'opacity-70 hover:opacity-90' : ''
                 }`}
-                style={editable && cat.color ? { borderColor: cat.color + '55' } : undefined}
+                style={{
+                  background: 'linear-gradient(135deg, rgba(99,179,237,0.12) 0%, rgba(139,92,246,0.08) 100%)',
+                  boxShadow: '0 4px 16px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.15)',
+                  backdropFilter: 'blur(12px)',
+                  border: `2px solid ${editable && cat.color ? cat.color + '55' : 'rgba(99,179,237,0.2)'}`,
+                }}
               >
                 {!editable && (
                   <span className="absolute top-2 right-2">
@@ -314,7 +319,7 @@ const EventsPage: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {schedules.map(s => (
-                <div key={s.id} className="bg-card border border-border rounded-xl p-4 flex items-center justify-between hover:border-primary/40 transition-colors">
+                <div key={s.id} className="rounded-xl p-4 flex items-center justify-between transition-all" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.15) 0%, rgba(139,92,246,0.08) 100%)', boxShadow: '0 4px 16px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', border: '1px solid rgba(99,179,237,0.25)' }}>
                   <div>
                     <p className="font-semibold text-foreground">{DAY_NAMES[s.dayOfWeek]}</p>
                     <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
@@ -548,9 +553,7 @@ const EntrainementsTab: React.FC<{
     const dateStr = occ.date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
 
     return (
-      <div key={key} className={`flex items-center justify-between bg-card border rounded-xl px-4 py-3 transition-all ${
-        dimmed ? 'opacity-60 border-border' : training ? 'border-primary/30 bg-primary/5' : 'border-border hover:border-primary/30'
-      }`}>
+      <div key={key} className={`flex items-center justify-between rounded-xl px-4 py-3 transition-all ${dimmed ? 'opacity-60' : ''}`} style={{ background: training ? 'linear-gradient(135deg, rgba(99,179,237,0.2) 0%, rgba(59,130,246,0.12) 100%)' : 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(139,92,246,0.07) 100%)', boxShadow: '0 4px 16px rgba(59,130,246,0.08), inset 0 1px 0 rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)', border: training ? '1px solid rgba(99,179,237,0.35)' : '1px solid rgba(99,179,237,0.18)' }}>
         <div className="flex items-center gap-4">
           <div className="text-center w-12">
             <p className="text-xs text-muted-foreground">{dayName}</p>
@@ -705,7 +708,7 @@ const EventCard: React.FC<{
 
   if (editing) {
     return (
-      <form onSubmit={handleSave} className="bg-card rounded-xl border border-primary/40 p-5 space-y-4">
+      <form onSubmit={handleSave} className="rounded-xl p-5 space-y-4" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(59,130,246,0.08) 100%)', boxShadow: '0 4px 20px rgba(139,92,246,0.1), inset 0 1px 0 rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', border: '1px solid rgba(167,139,250,0.35)' }}>
         <h3 className="font-semibold text-foreground text-sm">Modifier l'événement</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           <div>
@@ -770,7 +773,7 @@ const EventCard: React.FC<{
   }
 
   return (
-    <div className="bg-card rounded-xl border border-border p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-primary/40 transition-colors">
+    <div className="rounded-xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(59,130,246,0.08) 100%)', boxShadow: '0 4px 20px rgba(139,92,246,0.1), inset 0 1px 0 rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', border: '1px solid rgba(167,139,250,0.25)' }}>
       <div className="flex-1">
         <div className="flex items-center gap-2 mb-2">
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold

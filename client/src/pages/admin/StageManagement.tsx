@@ -247,7 +247,12 @@ const StageManagement: React.FC = () => {
             const isExpanded = expandedStage === stage.id;
             const detail = stageDetails[stage.id];
             return (
-              <div key={stage.id} className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+              <div key={stage.id} className="rounded-xl overflow-hidden" style={{
+                background: 'linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(59,130,246,0.08) 100%)',
+                boxShadow: '0 4px 24px rgba(139,92,246,0.12), inset 0 1px 0 rgba(255,255,255,0.15)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(167,139,250,0.25)',
+              }}>
                 <div className="flex items-start gap-3 sm:gap-4 px-3 sm:px-5 py-3 sm:py-4">
                   <div className="bg-primary/10 rounded-xl p-3 text-center min-w-[56px] shrink-0">
                     <div className="text-lg font-bold text-primary leading-none">{new Date(stage.startDate).getDate()}</div>

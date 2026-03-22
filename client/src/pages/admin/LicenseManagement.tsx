@@ -293,51 +293,28 @@ const LicenseManagement: React.FC = () => {
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center shrink-0">
-              <FileText size={16} className="text-muted-foreground" />
+          {[
+            { label: 'Total',          value: stats.total,        Icon: FileText,      bg: 'rgba(99,179,237,0.2)',   border: 'rgba(99,179,237,0.3)',   glow: 'rgba(59,130,246,0.15)',   iconColor: 'text-blue-300' },
+            { label: 'Actives',        value: stats.active,       Icon: CheckCircle,   bg: 'rgba(16,185,129,0.2)',   border: 'rgba(52,211,153,0.3)',   glow: 'rgba(16,185,129,0.15)',   iconColor: 'text-emerald-300' },
+            { label: 'Expirées',       value: stats.expired,      Icon: XCircle,       bg: 'rgba(239,68,68,0.2)',    border: 'rgba(248,113,113,0.3)',  glow: 'rgba(239,68,68,0.15)',    iconColor: 'text-red-300' },
+            { label: 'Suspendues',     value: stats.suspended,    Icon: AlertTriangle, bg: 'rgba(245,158,11,0.2)',   border: 'rgba(252,211,77,0.3)',   glow: 'rgba(245,158,11,0.15)',   iconColor: 'text-amber-300' },
+            { label: 'Expirent bientôt', value: stats.expiringSoon, Icon: Clock,       bg: 'rgba(249,115,22,0.2)',   border: 'rgba(253,186,116,0.3)',  glow: 'rgba(249,115,22,0.15)',   iconColor: 'text-orange-300' },
+          ].map(({ label, value, Icon, bg, border, glow, iconColor }) => (
+            <div key={label} className="rounded-xl p-4 flex items-center gap-3" style={{
+              background: `linear-gradient(135deg, ${bg} 0%, rgba(255,255,255,0.04) 100%)`,
+              boxShadow: `0 4px 20px ${glow}, inset 0 1px 0 rgba(255,255,255,0.2)`,
+              backdropFilter: 'blur(12px)',
+              border: `1px solid ${border}`,
+            }}>
+              <div className="h-9 w-9 rounded-full flex items-center justify-center shrink-0" style={{ background: bg, border: `1px solid ${border}` }}>
+                <Icon size={16} className={iconColor} />
+              </div>
+              <div>
+                <p className="text-xs text-white/50">{label}</p>
+                <p className="text-xl font-bold text-white">{value}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Total</p>
-              <p className="text-xl font-bold text-foreground">{stats.total}</p>
-            </div>
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center shrink-0">
-              <CheckCircle size={16} className="text-green-600 dark:text-green-400" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Actives</p>
-              <p className="text-xl font-bold text-foreground">{stats.active}</p>
-            </div>
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center shrink-0">
-              <XCircle size={16} className="text-red-600 dark:text-red-400" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Expirées</p>
-              <p className="text-xl font-bold text-foreground">{stats.expired}</p>
-            </div>
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-yellow-100 dark:bg-yellow-900/40 flex items-center justify-center shrink-0">
-              <AlertTriangle size={16} className="text-yellow-600 dark:text-yellow-400" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Suspendues</p>
-              <p className="text-xl font-bold text-foreground">{stats.suspended}</p>
-            </div>
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center shrink-0">
-              <Clock size={16} className="text-orange-600 dark:text-orange-400" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Expirent bientôt</p>
-              <p className="text-xl font-bold text-foreground">{stats.expiringSoon}</p>
-            </div>
-          </div>
+          ))}
         </div>
       )}
 
@@ -389,7 +366,12 @@ const LicenseManagement: React.FC = () => {
             const StatusIcon = sc.icon;
             const expiring = isExpiringSoon(l.expiryDate) && l.status === 'ACTIVE';
             return (
-              <div key={l.id} className="bg-card border border-border rounded-xl p-4 flex flex-col gap-3 hover:border-primary/40 transition-colors">
+              <div key={l.id} className="rounded-xl p-4 flex flex-col gap-3 transition-all" style={{
+                background: 'linear-gradient(135deg, rgba(59,130,246,0.14) 0%, rgba(139,92,246,0.09) 100%)',
+                boxShadow: '0 4px 20px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.15)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(99,179,237,0.22)',
+              }}>
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-sm font-bold text-primary">
                     {l.sportif.firstName[0]}{l.sportif.lastName[0]}
@@ -441,7 +423,12 @@ const LicenseManagement: React.FC = () => {
 
       {/* Table (List View) */}
       {viewMode === 'list' && (
-      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+      <div className="rounded-xl overflow-hidden" style={{
+        background: 'linear-gradient(135deg, rgba(59,130,246,0.12) 0%, rgba(139,92,246,0.08) 100%)',
+        boxShadow: '0 4px 24px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.12)',
+        backdropFilter: 'blur(12px)',
+        border: '1px solid rgba(99,179,237,0.2)',
+      }}>
         <div className="overflow-x-auto -mx-0">
           <table className="w-full text-sm min-w-[700px]">
             <thead>

@@ -262,9 +262,14 @@ const Messages: React.FC = () => {
   return (
     <>
     <ClubBanner />
-    <div className="flex h-[calc(100vh-8rem)] bg-background border border-border rounded-lg overflow-hidden">
+    <div className="flex h-[calc(100vh-8rem)] rounded-2xl overflow-hidden" style={{
+      background: 'linear-gradient(135deg, rgba(59,130,246,0.08) 0%, rgba(139,92,246,0.06) 100%)',
+      boxShadow: '0 8px 32px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.1)',
+      backdropFilter: 'blur(12px)',
+      border: '1px solid rgba(99,179,237,0.15)',
+    }}>
       {/* Sidebar */}
-      <div className={`w-full md:w-1/3 bg-card border-r border-border flex flex-col ${activeContact ? 'hidden md:flex' : 'flex'}`}>
+      <div className={`w-full md:w-1/3 flex flex-col border-r ${activeContact ? 'hidden md:flex' : 'flex'}`} style={{ borderColor: 'rgba(99,179,237,0.15)', background: 'rgba(10,15,30,0.4)' }}>
         <div className="p-4 border-b border-border flex justify-between items-center gap-2">
           <h2 className="text-lg font-semibold text-foreground">Messages</h2>
           <div className="flex items-center gap-1">

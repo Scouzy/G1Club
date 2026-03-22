@@ -321,10 +321,15 @@ const SportifList: React.FC = () => {
               <button
                 key={c.id}
                 onClick={() => setSelectedCategory(c.id)}
-                className={`relative flex flex-col items-center justify-center p-4 rounded-xl border-2 bg-card hover:shadow-md transition-all ${
-                  canEdit(c.id) ? 'border-border hover:shadow-md' : 'border-border/50 opacity-70 hover:opacity-90'
+                className={`relative flex flex-col items-center justify-center p-4 rounded-xl transition-all ${
+                  !canEdit(c.id) ? 'opacity-70 hover:opacity-90' : ''
                 }`}
-                style={canEdit(c.id) && c.color ? { borderColor: c.color + '55' } : undefined}
+                style={{
+                  background: 'linear-gradient(135deg, rgba(99,179,237,0.12) 0%, rgba(139,92,246,0.08) 100%)',
+                  boxShadow: '0 4px 16px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.15)',
+                  backdropFilter: 'blur(12px)',
+                  border: `2px solid ${canEdit(c.id) && c.color ? c.color + '55' : 'rgba(99,179,237,0.2)'}`,
+                }}
               >
                 {!canEdit(c.id) && (
                   <span className="absolute top-2 right-2"><Lock size={11} className="text-muted-foreground" /></span>
@@ -389,7 +394,12 @@ const SportifList: React.FC = () => {
             {filteredSportifs.map((sportif) => {
               const spTeam = teams.find(t => t.sportifs.some(s => s.id === sportif.id));
               return (
-                <div key={sportif.id} className="bg-card rounded-xl shadow-sm border border-border hover:shadow-md hover:border-primary/40 transition-all">
+                <div key={sportif.id} className="rounded-xl transition-all" style={{
+                  background: 'linear-gradient(135deg, rgba(59,130,246,0.12) 0%, rgba(139,92,246,0.08) 100%)',
+                  boxShadow: '0 4px 20px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.15)',
+                  backdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(99,179,237,0.2)',
+                }}>
                   <div className="p-5">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="h-11 w-11 rounded-full overflow-hidden border border-border bg-primary/10 flex items-center justify-center shrink-0">
@@ -479,9 +489,14 @@ const SportifList: React.FC = () => {
           {/* Colonnes équipes */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             {teams.map(team => (
-              <div key={team.id} className="bg-card border border-border rounded-xl overflow-hidden">
+              <div key={team.id} className="rounded-xl overflow-hidden" style={{
+                background: 'linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(59,130,246,0.08) 100%)',
+                boxShadow: '0 4px 20px rgba(139,92,246,0.12), inset 0 1px 0 rgba(255,255,255,0.15)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(167,139,250,0.25)',
+              }}>
                 {/* Header équipe */}
-                <div className="flex items-center justify-between px-4 py-3 bg-primary/5 border-b border-border">
+                <div className="flex items-center justify-between px-4 py-3 border-b" style={{ background: 'rgba(139,92,246,0.1)', borderColor: 'rgba(167,139,250,0.2)' }}>
                   <div className="flex items-center gap-2">
                     <Users size={15} className="text-primary" />
                     <span className="font-semibold text-foreground">{team.name}</span>
