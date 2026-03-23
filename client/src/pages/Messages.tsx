@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Conversation, Message, ContactsData, getConversations, getMessages, sendMessage, UserBasic, getContacts, getUnreadPerSender } from '../services/messageService';
 import { getUsers } from '../services/userService';
@@ -265,7 +265,6 @@ const Messages: React.FC = () => {
     <div className="flex h-[calc(100vh-8rem)] rounded-2xl overflow-hidden" style={{
       background: 'linear-gradient(135deg, rgba(59,130,246,0.08) 0%, rgba(139,92,246,0.06) 100%)',
       boxShadow: '0 8px 32px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.1)',
-      backdropFilter: 'blur(12px)',
       border: '1px solid rgba(99,179,237,0.15)',
     }}>
       {/* Sidebar */}
@@ -286,11 +285,6 @@ const Messages: React.FC = () => {
             {user?.role !== 'SPORTIF' && (
               <button onClick={openNewChat} className="text-primary hover:bg-muted p-2 rounded-full">
                 <PlusIcon />
-              </button>
-            )}
-            {user?.role === 'SPORTIF' && (
-              <button onClick={openCreateGroup} className="p-1.5 rounded-full hover:bg-muted text-primary" title="Cr\u00e9er un groupe">
-                <UsersRound size={16} />
               </button>
             )}
           </div>

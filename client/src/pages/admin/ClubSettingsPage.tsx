@@ -94,13 +94,13 @@ const ClubSettingsPage: React.FC = () => {
     try {
       const updated = await updateClubSettings({
         clubName: clubName.trim(),
-        logoUrl: logoUrl || undefined,
-        address: address.trim() || undefined,
-        city: city.trim() || undefined,
-        email: contactEmail.trim() || undefined,
-        phone: phone.trim() || undefined,
+        logoUrl: logoUrl || null,
+        address: address.trim() || null,
+        city: city.trim() || null,
+        email: contactEmail.trim() || null,
+        phone: phone.trim() || null,
         ...Object.fromEntries(
-          (Object.entries(socials) as [SocialKey, string][]).map(([k, v]) => [k, v.trim() || undefined])
+          (Object.entries(socials) as [SocialKey, string][]).map(([k, v]) => [k, v.trim() || null])
         ),
       });
       setClub(updated);

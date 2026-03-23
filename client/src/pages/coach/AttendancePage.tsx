@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../../lib/axios';
 import { useRefresh } from '../../context/RefreshContext';
@@ -126,7 +126,7 @@ const AttendancePage: React.FC = () => {
           <ChevronLeft size={16} /> Retour
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Feuille de présence</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Feuille de présence</h1>
           <p className="text-sm text-muted-foreground flex items-center gap-1.5">
             <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: (training.category as any).color || '#3b82f6' }} />
             {training.category.name} · {training.type}
@@ -135,7 +135,7 @@ const AttendancePage: React.FC = () => {
       </div>
 
       {/* Séance info */}
-      <div className="bg-card border border-border rounded-xl p-5 flex flex-wrap gap-6">
+      <div className="rounded-xl p-5 flex flex-wrap gap-6" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.32) 0%, rgba(139,92,246,0.2) 100%)', boxShadow: '0 8px 32px rgba(59,130,246,0.18), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(99,179,237,0.4)' }}>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Clock size={15} className="text-primary" />
           <span className="font-medium text-foreground">
@@ -167,7 +167,7 @@ const AttendancePage: React.FC = () => {
             <CheckCircle size={16} className="text-green-400" />
             <span className="text-sm font-semibold text-green-400">{presentCount} présent{presentCount > 1 ? 's' : ''}</span>
           </div>
-          <div className="text-2xl font-bold text-primary">{rate}%</div>
+          <div className="text-xl sm:text-2xl font-bold text-primary">{rate}%</div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -203,7 +203,7 @@ const AttendancePage: React.FC = () => {
           <p>Aucun sportif dans cette catégorie</p>
         </div>
       ) : (
-        <div className="bg-card border border-border rounded-xl divide-y divide-border">
+        <div className="rounded-xl divide-y" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.28) 0%, rgba(139,92,246,0.18) 100%)', boxShadow: '0 8px 32px rgba(59,130,246,0.15), inset 0 1px 0 rgba(255,255,255,0.22)', border: '1px solid rgba(99,179,237,0.38)' }}>
           {[...attendances]
             .sort((a, b) => a.sportif.lastName.localeCompare(b.sportif.lastName))
             .map(att => (

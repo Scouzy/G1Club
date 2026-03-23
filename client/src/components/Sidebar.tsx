@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useSidebar } from '../context/SidebarContext';
 import { useClub } from '../context/ClubContext';
 import { Link, useLocation } from 'react-router-dom';
@@ -228,14 +228,24 @@ const Sidebar: React.FC = () => {
 
   return (
     <>
-      {/* Mobile toggle */}
-      <button
-        className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-md shadow-lg border border-white/10"
-        style={{ background: 'hsl(222, 47%, 9%)' }}
-        onClick={() => setMobileOpen(o => !o)}
-      >
-        {mobileOpen ? <X size={22} className="text-white" /> : <Menu size={22} className="text-white" />}
-      </button>
+      {/* Mobile toggle — visible only when sidebar is closed */}
+      {!mobileOpen && (
+        <button
+          className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-md shadow-lg border border-white/10"
+          style={{ background: 'hsl(222, 47%, 9%)' }}
+          onClick={() => setMobileOpen(true)}
+        >
+          <Menu size={22} className="text-white" />
+        </button>
+      )}
+
+      {/* Mobile overlay — tap to close */}
+      {mobileOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-30 bg-black/50"
+          onClick={closeMobile}
+        />
+      )}
 
       {/* Sidebar */}
       <div
@@ -259,6 +269,15 @@ const Sidebar: React.FC = () => {
             </div>
             {!collapsed && (
               <span className="ml-3 text-white font-bold text-lg tracking-tight truncate flex-1">{club.clubName || 'G1Club'}</span>
+            )}
+            {/* Mobile close button */}
+            {mobileOpen && (
+              <button
+                onClick={closeMobile}
+                className="md:hidden ml-auto p-1.5 rounded-md text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <X size={20} />
+              </button>
             )}
             {/* Desktop collapse button */}
             <button
@@ -433,7 +452,6 @@ const Sidebar: React.FC = () => {
                   style={active ? {
                     background: 'linear-gradient(135deg, rgba(99,179,237,0.35) 0%, rgba(139,92,246,0.25) 50%, rgba(59,130,246,0.30) 100%)',
                     boxShadow: '0 4px 15px rgba(99,179,237,0.3), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.2)',
-                    backdropFilter: 'blur(10px)',
                     border: '1px solid rgba(147,197,253,0.4)',
                   } : undefined}
                   className={`flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
@@ -479,7 +497,6 @@ const Sidebar: React.FC = () => {
                           style={active ? {
                             background: 'linear-gradient(135deg, rgba(99,179,237,0.35) 0%, rgba(139,92,246,0.25) 50%, rgba(59,130,246,0.30) 100%)',
                             boxShadow: '0 4px 15px rgba(99,179,237,0.3), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.2)',
-                            backdropFilter: 'blur(10px)',
                             border: '1px solid rgba(147,197,253,0.4)',
                           } : undefined}
                         className={`flex items-center gap-2.5 px-3 py-2 rounded-full text-sm transition-all ${

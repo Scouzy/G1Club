@@ -3,6 +3,7 @@ import api from '../lib/axios';
 export interface Evaluation {
   id: string;
   date: string;
+  createdAt: string;
   type: 'TECHNIQUE' | 'PHYSIQUE' | 'TACTIQUE' | 'MENTAL' | 'GLOBAL';
   ratings: string; // JSON string from DB
   comment?: string;

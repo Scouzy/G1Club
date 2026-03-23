@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCoaches, Coach } from '../../services/coachService';
 import { useAuth } from '../../hooks/useAuth';
@@ -29,7 +29,7 @@ const CoachTeam: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Équipe d'encadrement</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Équipe d'encadrement</h1>
           <p className="text-sm text-muted-foreground mt-1">{coaches.length} entraîneur{coaches.length > 1 ? 's' : ''} dans le club</p>
         </div>
       </div>
@@ -45,9 +45,16 @@ const CoachTeam: React.FC = () => {
             return (
               <div
                 key={coach.id}
-                className={`bg-card border rounded-xl p-5 shadow-sm transition-all ${
-                  isMe ? 'border-primary/40 ring-1 ring-primary/20' : 'border-border hover:border-primary/30'
-                }`}
+                className="rounded-xl p-5 transition-all"
+                style={{
+                  background: isMe
+                    ? 'linear-gradient(135deg, rgba(59,130,246,0.38) 0%, rgba(139,92,246,0.25) 60%, rgba(99,179,237,0.3) 100%)'
+                    : 'linear-gradient(135deg, rgba(59,130,246,0.32) 0%, rgba(139,92,246,0.2) 60%, rgba(99,179,237,0.25) 100%)',
+                  boxShadow: isMe
+                    ? '0 8px 32px rgba(59,130,246,0.25), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.1)'
+                    : '0 8px 32px rgba(59,130,246,0.2), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.1)',
+                  border: isMe ? '1px solid rgba(99,179,237,0.5)' : '1px solid rgba(99,179,237,0.38)',
+                }}
               >
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-4">

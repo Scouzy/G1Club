@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Coach, getCoachProfile, getCurrentCoachProfile, updateCoachProfile, updateCoachCategories } from '../../services/coachService';
 import { Category, getCategories } from '../../services/categoryService';
@@ -136,8 +136,8 @@ const CoachProfile: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-foreground">Fiche Coach</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Fiche Coach</h1>
         {canEdit && !isEditing && (
           <button
             onClick={() => setIsEditing(true)}
@@ -148,37 +148,36 @@ const CoachProfile: React.FC = () => {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
         {/* Left Column: Basic Info + Catégories */}
         <div className="space-y-4">
-          <div className="bg-card p-6 rounded-xl shadow-sm border border-border">
+          <div className="p-4 sm:p-6 rounded-xl" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.35) 0%, rgba(139,92,246,0.2) 100%)', boxShadow: '0 8px 32px rgba(59,130,246,0.2), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.1)', border: '1px solid rgba(99,179,237,0.35)' }}>
             <div className="flex flex-col items-center mb-6">
-              <div className="relative group mb-4">
-                <div className="h-28 w-28 bg-muted rounded-full flex items-center justify-center overflow-hidden border-2 border-border">
+              <div className="mb-4">
+                <div className="relative h-28 w-28 bg-muted rounded-full flex items-center justify-center overflow-hidden border-2 border-border">
                   {coach.photoUrl ? (
                     <img src={coach.photoUrl} alt={coach.user.name} className="h-full w-full object-cover" />
                   ) : (
                     <User size={56} className="text-muted-foreground" />
                   )}
-                </div>
-                {canEdit && (
-                  <>
+                  {canEdit && (
                     <button
                       type="button"
                       onClick={() => photoInputRef.current?.click()}
                       disabled={uploadingPhoto}
-                      className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Changer la photo"
+                      className="absolute inset-0 flex items-end justify-end p-1.5"
                     >
-                      {uploadingPhoto ? (
-                        <div className="h-6 w-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <Camera size={22} className="text-white" />
-                      )}
+                      <div className="h-7 w-7 rounded-full bg-black/60 flex items-center justify-center">
+                        {uploadingPhoto ? (
+                          <div className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Camera size={13} className="text-white" />
+                        )}
+                      </div>
                     </button>
-                    <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
-                  </>
-                )}
+                  )}
+                </div>
+                {canEdit && <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />}
               </div>
               <h2 className="text-xl font-bold text-foreground text-center">{coach.user.name}</h2>
               <p className="text-sm text-muted-foreground">Entraîneur</p>
@@ -204,7 +203,7 @@ const CoachProfile: React.FC = () => {
           </div>
 
           {/* ===== CATÉGORIES ===== */}
-          <div className="bg-card p-5 rounded-xl shadow-sm border border-border">
+          <div className="p-5 rounded-xl" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.35) 0%, rgba(59,130,246,0.2) 100%)', boxShadow: '0 8px 32px rgba(139,92,246,0.2), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.1)', border: '1px solid rgba(167,139,250,0.4)' }}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-foreground flex items-center gap-2">
                 <Layers size={16} className="text-primary" /> Catégories
@@ -283,7 +282,7 @@ const CoachProfile: React.FC = () => {
         </div>
 
         {/* Right Column: Detailed Info / Edit Form */}
-        <div className="md:col-span-2 bg-card p-6 rounded-lg shadow-sm border border-border">
+        <div className="md:col-span-2 p-4 sm:p-6 rounded-xl" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(139,92,246,0.18) 60%, rgba(99,179,237,0.25) 100%)', boxShadow: '0 8px 32px rgba(59,130,246,0.2), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.1)', border: '1px solid rgba(99,179,237,0.35)' }}>
           {isEditing ? (
             <form onSubmit={handleUpdate} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sportif, getSportifById } from '../../services/sportifService';
 import { Annotation, getAnnotations, createAnnotation, deleteAnnotation } from '../../services/annotationService';
 import { Evaluation, getEvaluations, createEvaluation, updateEvaluation, deleteEvaluation } from '../../services/evaluationService';
 import { Team, getTeamsByCategory, assignSportifToTeam } from '../../services/teamService';
-import { User, Calendar, Ruler, Weight, Plus, Trash2, CheckCircle, XCircle, Save, TrendingUp, Shield, Camera, Edit2, Phone, Mail, MapPin, UserCheck } from 'lucide-react';
+import { User, Calendar, Ruler, Weight, Plus, Trash2, CheckCircle, XCircle, Save, TrendingUp, Shield, Camera, Edit2, Phone, Mail, MapPin, UserCheck, Activity, Star } from 'lucide-react';
+import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import api from '../../lib/axios';
 import { useRefresh } from '../../context/RefreshContext';
 import { useCoachCategories } from '../../hooks/useCoachCategories';
@@ -299,44 +300,42 @@ const SportifDetails: React.FC = () => {
       </button>
 
       {/* Header / Profile Card */}
-      <div className="rounded-xl p-6" style={{
-        background: 'linear-gradient(135deg, rgba(59,130,246,0.12) 0%, rgba(139,92,246,0.08) 100%)',
-        boxShadow: '0 8px 32px rgba(59,130,246,0.12), inset 0 1px 0 rgba(255,255,255,0.15)',
-        backdropFilter: 'blur(12px)',
-        border: '1px solid rgba(99,179,237,0.2)',
+      <div className="rounded-xl p-4 sm:p-6" style={{
+        background: 'linear-gradient(135deg, rgba(59,130,246,0.32) 0%, rgba(139,92,246,0.2) 100%)',
+        boxShadow: '0 8px 32px rgba(59,130,246,0.2), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.1)',
+        border: '1px solid rgba(99,179,237,0.38)',
       }}>
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
           {/* Avatar with optional photo upload */}
-          <div className="relative flex-shrink-0 group">
-            <div className="h-20 w-20 rounded-full overflow-hidden border-2 border-border bg-muted flex items-center justify-center">
+          <div className="flex-shrink-0">
+            <div className="relative h-20 w-20 rounded-full overflow-hidden border-2 border-border bg-muted flex items-center justify-center">
               {sportif.photoUrl ? (
                 <img src={sportif.photoUrl} alt={`${sportif.firstName} ${sportif.lastName}`} className="h-full w-full object-cover" />
               ) : (
                 <User className="h-10 w-10 text-muted-foreground" />
               )}
-            </div>
-            {canEdit(sportif.categoryId) && (
-              <>
+              {canEdit(sportif.categoryId) && (
                 <button
                   type="button"
                   onClick={() => photoInputRef.current?.click()}
                   disabled={uploadingPhoto}
-                  className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  title="Changer la photo"
+                  className="absolute inset-0 flex items-end justify-end p-1"
                 >
-                  {uploadingPhoto ? (
-                    <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <Camera className="h-5 w-5 text-white" />
-                  )}
+                  <div className="h-6 w-6 rounded-full bg-black/60 flex items-center justify-center">
+                    {uploadingPhoto ? (
+                      <div className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Camera className="h-3 w-3 text-white" />
+                    )}
+                  </div>
                 </button>
-                <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
-              </>
-            )}
+              )}
+            </div>
+            <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
           </div>
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-3 mb-3">
-              <h1 className="text-2xl font-bold text-foreground">{sportif.firstName} {sportif.lastName}</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">{sportif.firstName} {sportif.lastName}</h1>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
                 {sportif.category?.name}
               </span>
@@ -379,21 +378,23 @@ const SportifDetails: React.FC = () => {
             )}
           </div>
           {/* KPI présences */}
-          <div className="shrink-0 text-center rounded-xl px-6 py-4" style={{
-            background: 'linear-gradient(135deg, rgba(99,179,237,0.25) 0%, rgba(59,130,246,0.15) 100%)',
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)',
-            border: '1px solid rgba(99,179,237,0.3)',
+          <div className="shrink-0 flex items-center gap-3 rounded-xl px-4 py-2.5" style={{
+            background: 'linear-gradient(135deg, rgba(99,179,237,0.3) 0%, rgba(59,130,246,0.18) 100%)',
+            boxShadow: '0 4px 12px rgba(59,130,246,0.15), inset 0 1px 0 rgba(255,255,255,0.2)',
+            border: '1px solid rgba(99,179,237,0.35)',
           }}>
-            <div className="text-3xl font-bold text-primary">{attendanceRate}%</div>
-            <div className="text-xs text-muted-foreground mt-1">Taux de présence</div>
-            <div className="text-xs text-muted-foreground">{presentSessions}/{totalSessions} séances</div>
+            <div className="text-2xl font-bold text-primary">{attendanceRate}%</div>
+            <div>
+              <div className="text-xs font-medium text-foreground">Présence</div>
+              <div className="text-xs text-muted-foreground">{presentSessions}/{totalSessions} séances</div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-border overflow-x-auto">
-        <nav className="-mb-px flex gap-2 sm:gap-6 min-w-max">
+      <div className="border-b border-border overflow-x-auto scrollbar-none" style={{ scrollbarWidth: 'none' }}>
+        <nav className="-mb-px flex gap-2 sm:gap-4 min-w-max">
           {([
             { key: 'overview',    label: 'Vue d\'ensemble' },
             { key: 'presences',   label: `Présences (${totalSessions})` },
@@ -419,26 +420,50 @@ const SportifDetails: React.FC = () => {
 
         {/* ===== VUE D'ENSEMBLE ===== */}
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-5 rounded-xl text-center" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.25) 0%, rgba(5,150,105,0.12) 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)', border: '1px solid rgba(52,211,153,0.3)' }}>
-              <div className="text-3xl font-bold text-emerald-300">{presentSessions}</div>
-              <div className="text-sm text-emerald-200/60 mt-1">Présences</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            <div className="relative overflow-hidden rounded-2xl p-4 sm:p-5 flex flex-col gap-2" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.3) 0%, rgba(5,150,105,0.15) 60%, rgba(52,211,153,0.25) 100%)', boxShadow: '0 8px 32px rgba(16,185,129,0.2), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(52,211,153,0.3)' }}>
+              <div className="absolute top-0 right-0 w-20 h-20 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #34d399, transparent)', transform: 'translate(30%, -30%)' }} />
+              <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(16,185,129,0.25)', border: '1px solid rgba(52,211,153,0.3)' }}>
+                <CheckCircle className="h-4 w-4 text-emerald-300" />
+              </div>
+              <div>
+                <p className="text-2xl sm:text-3xl font-bold text-white">{presentSessions}</p>
+                <p className="text-xs font-medium text-emerald-200/70 mt-0.5">Présences</p>
+              </div>
             </div>
-            <div className="p-5 rounded-xl text-center" style={{ background: 'linear-gradient(135deg, rgba(239,68,68,0.25) 0%, rgba(185,28,28,0.12) 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)', border: '1px solid rgba(248,113,113,0.3)' }}>
-              <div className="text-3xl font-bold text-red-300">{totalSessions - presentSessions}</div>
-              <div className="text-sm text-red-200/60 mt-1">Absences</div>
+            <div className="relative overflow-hidden rounded-2xl p-4 sm:p-5 flex flex-col gap-2" style={{ background: 'linear-gradient(135deg, rgba(239,68,68,0.3) 0%, rgba(185,28,28,0.15) 60%, rgba(252,165,165,0.25) 100%)', boxShadow: '0 8px 32px rgba(239,68,68,0.2), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(248,113,113,0.3)' }}>
+              <div className="absolute top-0 right-0 w-20 h-20 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #fca5a5, transparent)', transform: 'translate(30%, -30%)' }} />
+              <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(239,68,68,0.25)', border: '1px solid rgba(248,113,113,0.3)' }}>
+                <XCircle className="h-4 w-4 text-red-300" />
+              </div>
+              <div>
+                <p className="text-2xl sm:text-3xl font-bold text-white">{totalSessions - presentSessions}</p>
+                <p className="text-xs font-medium text-red-200/70 mt-0.5">Absences</p>
+              </div>
             </div>
-            <div className="p-5 rounded-xl text-center" style={{ background: 'linear-gradient(135deg, rgba(99,179,237,0.25) 0%, rgba(59,130,246,0.12) 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)', border: '1px solid rgba(99,179,237,0.3)' }}>
-              <div className="text-3xl font-bold text-blue-300">{attendanceRate}%</div>
-              <div className="text-sm text-blue-200/60 mt-1">Taux de présence</div>
+            <div className="relative overflow-hidden rounded-2xl p-4 sm:p-5 flex flex-col gap-2" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(37,99,235,0.15) 60%, rgba(99,179,237,0.25) 100%)', boxShadow: '0 8px 32px rgba(59,130,246,0.2), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(99,179,237,0.3)' }}>
+              <div className="absolute top-0 right-0 w-20 h-20 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #60a5fa, transparent)', transform: 'translate(30%, -30%)' }} />
+              <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(59,130,246,0.25)', border: '1px solid rgba(99,179,237,0.3)' }}>
+                <Activity className="h-4 w-4 text-blue-300" />
+              </div>
+              <div>
+                <p className="text-2xl sm:text-3xl font-bold text-white">{attendanceRate}%</p>
+                <p className="text-xs font-medium text-blue-200/70 mt-0.5">Taux de présence</p>
+              </div>
             </div>
-            <div className="p-5 rounded-xl text-center" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.25) 0%, rgba(109,40,217,0.12) 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)', border: '1px solid rgba(167,139,250,0.3)' }}>
-              <div className="text-3xl font-bold text-violet-300">{evaluations.length}</div>
-              <div className="text-sm text-violet-200/60 mt-1">Évaluations</div>
+            <div className="relative overflow-hidden rounded-2xl p-4 sm:p-5 flex flex-col gap-2" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.3) 0%, rgba(109,40,217,0.15) 60%, rgba(167,139,250,0.25) 100%)', boxShadow: '0 8px 32px rgba(139,92,246,0.2), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(167,139,250,0.3)' }}>
+              <div className="absolute top-0 right-0 w-20 h-20 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #a78bfa, transparent)', transform: 'translate(30%, -30%)' }} />
+              <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(139,92,246,0.25)', border: '1px solid rgba(167,139,250,0.3)' }}>
+                <Star className="h-4 w-4 text-violet-300" />
+              </div>
+              <div>
+                <p className="text-2xl sm:text-3xl font-bold text-white">{evaluations.length}</p>
+                <p className="text-xs font-medium text-violet-200/70 mt-0.5">Évaluations</p>
+              </div>
             </div>
-            {/* 3 dernières séances */}
+            {/* Dernières séances */}
             {attendances.length > 0 && (
-              <div className="col-span-full rounded-xl p-5" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(139,92,246,0.07) 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12)', border: '1px solid rgba(99,179,237,0.15)' }}>
+              <div className="col-span-full rounded-xl p-5" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.28) 0%, rgba(139,92,246,0.18) 100%)', boxShadow: '0 8px 32px rgba(59,130,246,0.15), inset 0 1px 0 rgba(255,255,255,0.22)', border: '1px solid rgba(99,179,237,0.35)' }}>
                 <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                   <TrendingUp size={16} className="text-primary" /> Dernières séances
                 </h3>
@@ -463,6 +488,71 @@ const SportifDetails: React.FC = () => {
                 </div>
               </div>
             )}
+
+            {/* ── Graphiques des évaluations ── */}
+            {evaluations.length > 0 && (() => {
+              const labelMap: Record<string, string> = { technique: 'Technique', endurance: 'Endurance', vitesse: 'Vitesse', mental: 'Mental' };
+
+              /* Moyenne par critère → RadarChart */
+              const criteriaKeys = ['technique', 'endurance', 'vitesse', 'mental'];
+              const avgByCriteria = criteriaKeys.map(key => {
+                const vals = evaluations.map(ev => { try { return JSON.parse(ev.ratings)[key]; } catch { return null; } }).filter((v): v is number => typeof v === 'number');
+                return { criterion: labelMap[key] ?? key, value: vals.length > 0 ? Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10 : 0 };
+              });
+
+              /* Évolution dans le temps → LineChart (dernières 8 évals max) */
+              const evalsSorted = [...evaluations].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()).slice(-8);
+              const lineData = evalsSorted.map((ev, i) => {
+                let scores: Record<string, number> = {};
+                try { scores = JSON.parse(ev.ratings); } catch {}
+                const avg = criteriaKeys.map(k => scores[k] ?? 0).reduce((a, b) => a + b, 0) / criteriaKeys.length;
+                return { name: `Év. ${i + 1}`, moyenne: Math.round(avg * 10) / 10, ...Object.fromEntries(criteriaKeys.map(k => [labelMap[k], scores[k] ?? 0])) };
+              });
+
+              return (
+                <>
+                  {/* Radar — profil moyen */}
+                  <div className="col-span-full sm:col-span-1 lg:col-span-2 rounded-xl p-5" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.35) 0%, rgba(59,130,246,0.2) 100%)', boxShadow: '0 8px 32px rgba(139,92,246,0.2), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(167,139,250,0.4)' }}>
+                    <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                      <TrendingUp size={16} className="text-violet-400" /> Profil moyen ({evaluations.length} éval{evaluations.length > 1 ? 's' : ''})
+                    </h3>
+                    <ResponsiveContainer width="100%" height={220}>
+                      <RadarChart data={avgByCriteria} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
+                        <PolarGrid stroke="rgba(255,255,255,0.08)" />
+                        <PolarAngleAxis dataKey="criterion" tick={{ fontSize: 12, fill: 'rgba(255,255,255,0.6)' }} />
+                        <Radar name="Moyenne" dataKey="value" stroke="#a78bfa" fill="#a78bfa" fillOpacity={0.25} strokeWidth={2} dot={{ r: 3, fill: '#a78bfa' }} />
+                        <Tooltip
+                          contentStyle={{ background: 'rgba(10,15,40,0.95)', border: '1px solid rgba(167,139,250,0.3)', borderRadius: 8, fontSize: 12 }}
+                          formatter={(v) => [`${v}/10`, 'Moyenne']}
+                        />
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Line — évolution dans le temps */}
+                  {lineData.length >= 2 && (
+                    <div className="col-span-full sm:col-span-1 lg:col-span-2 rounded-xl p-5" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.32) 0%, rgba(16,185,129,0.2) 100%)', boxShadow: '0 8px 32px rgba(59,130,246,0.2), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(99,179,237,0.4)' }}>
+                      <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                        <TrendingUp size={16} className="text-blue-400" /> Évolution des notes
+                      </h3>
+                      <ResponsiveContainer width="100%" height={220}>
+                        <LineChart data={lineData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                          <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.5)' }} />
+                          <YAxis domain={[0, 10]} tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.5)' }} />
+                          <Tooltip contentStyle={{ background: 'rgba(10,15,40,0.95)', border: '1px solid rgba(99,179,237,0.3)', borderRadius: 8, fontSize: 12 }} />
+                          <Legend wrapperStyle={{ fontSize: 11 }} />
+                          <Line type="monotone" dataKey="Technique"  stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
+                          <Line type="monotone" dataKey="Endurance"  stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
+                          <Line type="monotone" dataKey="Vitesse"    stroke="#f97316" strokeWidth={2} dot={{ r: 3 }} />
+                          <Line type="monotone" dataKey="Mental"     stroke="#a78bfa" strokeWidth={2} dot={{ r: 3 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
         )}
 
@@ -491,7 +581,7 @@ const SportifDetails: React.FC = () => {
                 Aucune séance enregistrée
               </div>
             ) : (
-              <div className="bg-card border border-border rounded-xl divide-y divide-border">
+              <div className="rounded-xl divide-y" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(139,92,246,0.18) 100%)', boxShadow: '0 8px 32px rgba(59,130,246,0.15), inset 0 1px 0 rgba(255,255,255,0.22)', border: '1px solid rgba(99,179,237,0.38)' }}>
                 {filteredAttendances.map(att => {
                   const edited = editedAttendances[att.id] ?? { present: att.present, reason: att.reason };
                   const isDirty = edited.present !== att.present || (edited.reason ?? '') !== (att.reason ?? '');
@@ -570,8 +660,8 @@ const SportifDetails: React.FC = () => {
 
         {activeTab === 'annotations' && (
             <div>
-               <div className="flex justify-between items-center mb-4">
-                   <h3 className="text-lg font-medium text-foreground">Annotations du Coach</h3>
+               <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                   <h3 className="text-lg font-medium text-foreground md:text-xl">Annotations du coach</h3>
                    <button 
                       onClick={() => setIsAnnotationModalOpen(true)}
                       className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90"
@@ -582,7 +672,7 @@ const SportifDetails: React.FC = () => {
                
                <div className="space-y-4">
                   {annotations.map(annotation => (
-                      <div key={annotation.id} className="p-4 rounded-xl" style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(217,119,6,0.07) 100%)', boxShadow: '0 4px 16px rgba(245,158,11,0.08), inset 0 1px 0 rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)', border: '1px solid rgba(252,211,77,0.2)' }}>
+                      <div key={annotation.id} className="p-4 rounded-xl" style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.32) 0%, rgba(217,119,6,0.2) 100%)', boxShadow: '0 8px 32px rgba(245,158,11,0.15), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(252,211,77,0.4)' }}>
                           <div className="flex justify-between items-start">
                               <div className="flex items-center gap-2 mb-2">
                                   <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
@@ -620,7 +710,7 @@ const SportifDetails: React.FC = () => {
 
         {activeTab === 'evaluations' && (
             <div>
-                 <div className="flex justify-between items-center mb-4">
+                 <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                      <h3 className="text-lg font-medium text-foreground">Évaluations</h3>
                      {canEdit(sportif.categoryId) && user?.role === 'COACH' && (
                        <button
@@ -641,8 +731,8 @@ const SportifDetails: React.FC = () => {
                         const labelMap: Record<string, string> = { technique: 'Technique', endurance: 'Endurance', vitesse: 'Vitesse', mental: 'Mental' };
                         const colorMap: Record<string, string> = { technique: 'bg-blue-500', endurance: 'bg-green-500', vitesse: 'bg-orange-500', mental: 'bg-purple-500' };
                         return (
-                          <div key={evaluation.id} className="p-5 rounded-xl" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(59,130,246,0.08) 100%)', boxShadow: '0 4px 24px rgba(139,92,246,0.12), inset 0 1px 0 rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', border: '1px solid rgba(167,139,250,0.25)' }}>
-                            <div className="flex justify-between items-start mb-4">
+                          <div key={evaluation.id} className="p-5 rounded-xl" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.35) 0%, rgba(59,130,246,0.2) 100%)', boxShadow: '0 8px 32px rgba(139,92,246,0.2), inset 0 1px 0 rgba(255,255,255,0.28)', border: '1px solid rgba(167,139,250,0.42)' }}>
+                            <div className="flex flex-wrap items-start justify-between gap-2 mb-4">
                               <div className="flex items-center gap-3">
                                 {avg !== null && (
                                   <div className="h-12 w-12 rounded-xl bg-primary/10 border border-primary/20 flex flex-col items-center justify-center shrink-0">
@@ -754,7 +844,7 @@ const SportifDetails: React.FC = () => {
           return (
             <form onSubmit={handleSaveInfo} className="space-y-6">
               {/* Âge calculé */}
-              <div className="rounded-xl p-5" style={{ background: 'linear-gradient(135deg, rgba(99,179,237,0.15) 0%, rgba(59,130,246,0.08) 100%)', boxShadow: '0 4px 20px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', border: '1px solid rgba(99,179,237,0.2)' }}>
+              <div className="rounded-xl p-5" style={{ background: 'linear-gradient(135deg, rgba(99,179,237,0.35) 0%, rgba(59,130,246,0.22) 100%)', boxShadow: '0 8px 32px rgba(59,130,246,0.2), inset 0 1px 0 rgba(255,255,255,0.28)', border: '1px solid rgba(99,179,237,0.42)' }}>
                 <div className="flex items-center gap-4">
                   <div className="h-14 w-14 rounded-xl bg-primary/10 border border-primary/20 flex flex-col items-center justify-center shrink-0">
                     <span className="text-2xl font-bold text-primary leading-none">{age}</span>
@@ -770,7 +860,7 @@ const SportifDetails: React.FC = () => {
               </div>
 
               {/* Informations personnelles */}
-              <div className="rounded-xl p-5 space-y-4" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.12) 0%, rgba(109,40,217,0.07) 100%)', boxShadow: '0 4px 20px rgba(139,92,246,0.1), inset 0 1px 0 rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)', border: '1px solid rgba(167,139,250,0.2)' }}>
+              <div className="rounded-xl p-5 space-y-4" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.32) 0%, rgba(109,40,217,0.2) 100%)', boxShadow: '0 8px 32px rgba(139,92,246,0.18), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(167,139,250,0.4)' }}>
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <UserCheck size={15} className="text-primary" /> Identité
                 </h3>
@@ -792,7 +882,7 @@ const SportifDetails: React.FC = () => {
               </div>
 
               {/* Coordonnées */}
-              <div className="rounded-xl p-5 space-y-4" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(5,150,105,0.07) 100%)', boxShadow: '0 4px 20px rgba(16,185,129,0.1), inset 0 1px 0 rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)', border: '1px solid rgba(52,211,153,0.2)' }}>
+              <div className="rounded-xl p-5 space-y-4" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.35) 0%, rgba(5,150,105,0.22) 100%)', boxShadow: '0 8px 32px rgba(16,185,129,0.2), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(52,211,153,0.42)' }}>
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <Phone size={15} className="text-primary" /> Coordonnées
                 </h3>
@@ -801,7 +891,7 @@ const SportifDetails: React.FC = () => {
               </div>
 
               {/* Contacts parents */}
-              <div className="rounded-xl p-5 space-y-4" style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(217,119,6,0.07) 100%)', boxShadow: '0 4px 20px rgba(245,158,11,0.1), inset 0 1px 0 rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)', border: '1px solid rgba(252,211,77,0.2)' }}>
+              <div className="rounded-xl p-5 space-y-4" style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.35) 0%, rgba(217,119,6,0.22) 100%)', boxShadow: '0 8px 32px rgba(245,158,11,0.2), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(252,211,77,0.42)' }}>
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <Phone size={15} className="text-primary" /> Contacts parentaux
                 </h3>

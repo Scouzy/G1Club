@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Sportif, getSportifs, createSportif, deleteSportif } from '../../services/sportifService';
 import { Category, getCategories } from '../../services/categoryService';
@@ -251,7 +251,7 @@ const SportifList: React.FC = () => {
             </button>
           )}
           <div>
-            <h1 className="text-2xl font-bold text-foreground">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">
               {selectedCategoryObj ? `Catégorie ${selectedCategoryObj.name}` : 'Sportifs'}
             </h1>
             {!selectedCategoryObj && (
@@ -327,7 +327,6 @@ const SportifList: React.FC = () => {
                 style={{
                   background: 'linear-gradient(135deg, rgba(99,179,237,0.12) 0%, rgba(139,92,246,0.08) 100%)',
                   boxShadow: '0 4px 16px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.15)',
-                  backdropFilter: 'blur(12px)',
                   border: `2px solid ${canEdit(c.id) && c.color ? c.color + '55' : 'rgba(99,179,237,0.2)'}`,
                 }}
               >
@@ -356,7 +355,7 @@ const SportifList: React.FC = () => {
 
       {/* Tabs — shown only when a category is selected */}
       {selectedCategoryObj && (
-        <div className="flex gap-1 border-b border-border overflow-x-auto">
+        <div className="flex gap-1 border-b border-border overflow-x-auto scrollbar-none" style={{ scrollbarWidth: 'none' }}>
           <button
             onClick={() => setCategoryTab('sportifs')}
             className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
@@ -397,7 +396,6 @@ const SportifList: React.FC = () => {
                 <div key={sportif.id} className="rounded-xl transition-all" style={{
                   background: 'linear-gradient(135deg, rgba(59,130,246,0.12) 0%, rgba(139,92,246,0.08) 100%)',
                   boxShadow: '0 4px 20px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.15)',
-                  backdropFilter: 'blur(12px)',
                   border: '1px solid rgba(99,179,237,0.2)',
                 }}>
                   <div className="p-5">
@@ -492,7 +490,6 @@ const SportifList: React.FC = () => {
               <div key={team.id} className="rounded-xl overflow-hidden" style={{
                 background: 'linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(59,130,246,0.08) 100%)',
                 boxShadow: '0 4px 20px rgba(139,92,246,0.12), inset 0 1px 0 rgba(255,255,255,0.15)',
-                backdropFilter: 'blur(12px)',
                 border: '1px solid rgba(167,139,250,0.25)',
               }}>
                 {/* Header équipe */}
@@ -556,7 +553,7 @@ const SportifList: React.FC = () => {
 
           {/* Non assignés */}
           {catSportifs.length > 0 && (
-            <div className="bg-card border border-border rounded-xl p-4">
+            <div className="rounded-xl p-4" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.28) 0%, rgba(139,92,246,0.18) 100%)', boxShadow: '0 8px 32px rgba(59,130,246,0.15), inset 0 1px 0 rgba(255,255,255,0.22)', border: '1px solid rgba(99,179,237,0.35)' }}>
               <p className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
                 <User size={14} className="text-muted-foreground" />
                 Sans équipe ({unassignedSportifs.length})

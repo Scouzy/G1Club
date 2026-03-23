@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import api from '../../lib/axios';
 import { useRefresh } from '../../context/RefreshContext';
 import { Calendar, Clock, MapPin, Trophy, Swords, Target, ChevronRight, Repeat } from 'lucide-react';
@@ -106,7 +106,7 @@ const SportifEvents: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Mes Événements</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Mes Événements</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Catégorie <span className="font-semibold text-foreground">{categoryName}</span>
           {' · '}{trainings.length} séance{trainings.length > 1 ? 's' : ''} au total
@@ -151,7 +151,7 @@ const SportifEvents: React.FC = () => {
       )}
 
       {/* Onglets principaux */}
-      <div className="flex gap-1 bg-muted/40 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 bg-muted/40 p-1 rounded-xl overflow-x-auto">
         <button
           onClick={() => setMainTab('schedules')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
@@ -215,7 +215,7 @@ const SportifEvents: React.FC = () => {
       {mainTab === 'events' && (
       <div className="space-y-4">
       {/* Filtres événements */}
-      <div className="flex gap-1 bg-muted/40 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 bg-muted/40 p-1 rounded-xl overflow-x-auto">
         {([
           { id: 'upcoming', label: `À venir (${upcomingCount})` },
           { id: 'past',     label: 'Passés' },

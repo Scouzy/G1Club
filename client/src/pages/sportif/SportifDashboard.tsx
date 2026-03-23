@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import api from '../../lib/axios';
 import { useRefresh } from '../../context/RefreshContext';
 import { getCategoryMessages, Message } from '../../services/messageService';
@@ -289,9 +289,9 @@ const SportifDashboard: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-        <div className="relative group shrink-0">
+        <div className="shrink-0">
           <div
-            className="h-16 w-16 rounded-2xl overflow-hidden flex items-center justify-center border border-border"
+            className="relative h-16 w-16 rounded-2xl overflow-hidden flex items-center justify-center border border-border"
             style={{ backgroundColor: ((profile.category as any).color || '#3b82f6') + '22', color: (profile.category as any).color || '#3b82f6' }}
           >
             {(profile as any).photoUrl ? (
@@ -299,24 +299,25 @@ const SportifDashboard: React.FC = () => {
             ) : (
               <User size={26} />
             )}
+            <button
+              type="button"
+              onClick={() => photoInputRef.current?.click()}
+              disabled={uploadingPhoto}
+              className="absolute inset-0 flex items-end justify-end p-1"
+            >
+              <div className="h-5 w-5 rounded-full bg-black/60 flex items-center justify-center">
+                {uploadingPhoto ? (
+                  <div className="h-2.5 w-2.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Camera size={10} className="text-white" />
+                )}
+              </div>
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => photoInputRef.current?.click()}
-            disabled={uploadingPhoto}
-            className="absolute inset-0 rounded-2xl bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-            title="Changer ma photo"
-          >
-            {uploadingPhoto ? (
-              <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <Camera size={18} className="text-white" />
-            )}
-          </button>
           <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">{profile.firstName} {profile.lastName}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">{profile.firstName} {profile.lastName}</h1>
           <p className="text-muted-foreground text-sm flex items-center gap-1.5">
             <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: (profile.category as any).color || '#3b82f6' }} />
             {profile.category.name}
@@ -328,12 +329,12 @@ const SportifDashboard: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-muted/40 p-1 rounded-xl w-full overflow-x-auto">
+      <div className="flex gap-1 bg-muted/40 p-1 rounded-xl w-full overflow-x-auto scrollbar-none">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
               activeTab === tab.id
                 ? 'bg-card text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
@@ -349,28 +350,52 @@ const SportifDashboard: React.FC = () => {
       {activeTab === 'overview' && (
         <div className="space-y-6">
           {/* KPI Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-card border border-border rounded-xl p-4">
-              <p className="text-xs text-muted-foreground mb-1">Séances totales</p>
-              <p className="text-3xl font-bold text-foreground">{totalSessions}</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            <div className="relative overflow-hidden rounded-2xl p-4 sm:p-5 flex flex-col gap-2" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(37,99,235,0.15) 60%, rgba(99,179,237,0.25) 100%)', boxShadow: '0 8px 32px rgba(59,130,246,0.2), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(99,179,237,0.3)' }}>
+              <div className="absolute top-0 right-0 w-20 h-20 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #60a5fa, transparent)', transform: 'translate(30%, -30%)' }} />
+              <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(59,130,246,0.25)', border: '1px solid rgba(99,179,237,0.3)' }}>
+                <Activity className="h-4 w-4 text-blue-300" />
+              </div>
+              <div>
+                <p className="text-2xl sm:text-3xl font-bold text-white">{totalSessions}</p>
+                <p className="text-xs font-medium text-blue-200/70 mt-0.5">Séances totales</p>
+              </div>
             </div>
-            <div className="bg-card border border-border rounded-xl p-4">
-              <p className="text-xs text-muted-foreground mb-1">Taux de présence</p>
-              <p className="text-3xl font-bold text-green-400">{attendanceRate}%</p>
+            <div className="relative overflow-hidden rounded-2xl p-4 sm:p-5 flex flex-col gap-2" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.3) 0%, rgba(5,150,105,0.15) 60%, rgba(52,211,153,0.25) 100%)', boxShadow: '0 8px 32px rgba(16,185,129,0.2), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(52,211,153,0.3)' }}>
+              <div className="absolute top-0 right-0 w-20 h-20 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #34d399, transparent)', transform: 'translate(30%, -30%)' }} />
+              <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(16,185,129,0.25)', border: '1px solid rgba(52,211,153,0.3)' }}>
+                <TrendingUp className="h-4 w-4 text-emerald-300" />
+              </div>
+              <div>
+                <p className="text-2xl sm:text-3xl font-bold text-white">{attendanceRate}%</p>
+                <p className="text-xs font-medium text-emerald-200/70 mt-0.5">Taux de présence</p>
+              </div>
             </div>
-            <div className="bg-card border border-border rounded-xl p-4">
-              <p className="text-xs text-muted-foreground mb-1">Présences</p>
-              <p className="text-3xl font-bold text-blue-400">{presentSessions}</p>
+            <div className="relative overflow-hidden rounded-2xl p-4 sm:p-5 flex flex-col gap-2" style={{ background: 'linear-gradient(135deg, rgba(99,179,237,0.3) 0%, rgba(59,130,246,0.15) 60%, rgba(147,197,253,0.25) 100%)', boxShadow: '0 8px 32px rgba(59,130,246,0.2), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(99,179,237,0.3)' }}>
+              <div className="absolute top-0 right-0 w-20 h-20 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #93c5fd, transparent)', transform: 'translate(30%, -30%)' }} />
+              <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(99,179,237,0.25)', border: '1px solid rgba(147,197,253,0.3)' }}>
+                <CheckCircle className="h-4 w-4 text-blue-200" />
+              </div>
+              <div>
+                <p className="text-2xl sm:text-3xl font-bold text-white">{presentSessions}</p>
+                <p className="text-xs font-medium text-blue-200/70 mt-0.5">Présences</p>
+              </div>
             </div>
-            <div className="bg-card border border-border rounded-xl p-4">
-              <p className="text-xs text-muted-foreground mb-1">Absences</p>
-              <p className="text-3xl font-bold text-red-400">{absenceSessions}</p>
+            <div className="relative overflow-hidden rounded-2xl p-4 sm:p-5 flex flex-col gap-2" style={{ background: 'linear-gradient(135deg, rgba(239,68,68,0.3) 0%, rgba(185,28,28,0.15) 60%, rgba(252,165,165,0.25) 100%)', boxShadow: '0 8px 32px rgba(239,68,68,0.2), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(248,113,113,0.3)' }}>
+              <div className="absolute top-0 right-0 w-20 h-20 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #fca5a5, transparent)', transform: 'translate(30%, -30%)' }} />
+              <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(239,68,68,0.25)', border: '1px solid rgba(248,113,113,0.3)' }}>
+                <XCircle className="h-4 w-4 text-red-300" />
+              </div>
+              <div>
+                <p className="text-2xl sm:text-3xl font-bold text-white">{absenceSessions}</p>
+                <p className="text-xs font-medium text-red-200/70 mt-0.5">Absences</p>
+              </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Radar des compétences */}
-            <div className="bg-card border border-border rounded-xl p-6">
+            <div className="rounded-xl p-4 sm:p-6" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.35) 0%, rgba(59,130,246,0.2) 100%)', boxShadow: '0 8px 32px rgba(139,92,246,0.2), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(167,139,250,0.4)' }}>
               <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                 <Shield size={16} className="text-primary" /> Profil de compétences
               </h3>
@@ -391,7 +416,7 @@ const SportifDashboard: React.FC = () => {
             </div>
 
             {/* Évolution des performances */}
-            <div className="bg-card border border-border rounded-xl p-6">
+            <div className="rounded-xl p-4 sm:p-6" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.32) 0%, rgba(16,185,129,0.2) 100%)', boxShadow: '0 8px 32px rgba(59,130,246,0.2), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(99,179,237,0.4)' }}>
               <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                 <TrendingUp size={16} className="text-primary" /> Évolution des performances
               </h3>
@@ -418,7 +443,7 @@ const SportifDashboard: React.FC = () => {
 
           {/* Prochains événements */}
           {upcomingEvents.length > 0 && (
-            <div className="bg-card border border-border rounded-xl p-6">
+            <div className="rounded-xl p-4 sm:p-6" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(139,92,246,0.18) 100%)', boxShadow: '0 8px 32px rgba(59,130,246,0.18), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(99,179,237,0.38)' }}>
               <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                 <Clock size={16} className="text-primary" /> Prochains événements
               </h3>
@@ -450,7 +475,7 @@ const SportifDashboard: React.FC = () => {
 
           {/* Derniers résultats */}
           {recentMatches.length > 0 && (
-            <div className="bg-card border border-border rounded-xl p-6">
+            <div className="rounded-xl p-4 sm:p-6" style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.32) 0%, rgba(217,119,6,0.2) 100%)', boxShadow: '0 8px 32px rgba(245,158,11,0.15), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(252,211,77,0.4)' }}>
               <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                 <Trophy size={16} className="text-primary" /> Derniers résultats
               </h3>
@@ -497,7 +522,7 @@ const SportifDashboard: React.FC = () => {
 
           {/* Messages du coach */}
           {categoryMessages.length > 0 && (
-            <div className="bg-card border border-border rounded-xl p-6">
+            <div className="rounded-xl p-4 sm:p-6" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.3) 0%, rgba(59,130,246,0.18) 100%)', boxShadow: '0 8px 32px rgba(16,185,129,0.15), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(52,211,153,0.38)' }}>
               <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                 <MessageSquare size={16} className="text-primary" /> Messages de l'encadrement
               </h3>
@@ -526,7 +551,7 @@ const SportifDashboard: React.FC = () => {
 
           {/* Dernières évaluations par type */}
           {Object.keys(latestEvalByType).length > 0 && (
-            <div className="bg-card border border-border rounded-xl p-6">
+            <div className="rounded-xl p-4 sm:p-6" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.35) 0%, rgba(59,130,246,0.22) 100%)', boxShadow: '0 8px 32px rgba(139,92,246,0.2), inset 0 1px 0 rgba(255,255,255,0.28)', border: '1px solid rgba(167,139,250,0.42)' }}>
               <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                 <Star size={16} className="text-primary" /> Dernières notes par domaine
               </h3>
@@ -540,14 +565,14 @@ const SportifDashboard: React.FC = () => {
                   const Icon = EVAL_TYPE_ICONS[type] ?? Star;
                   const color = EVAL_TYPE_COLORS[type] ?? '#3b82f6';
                   return (
-                    <div key={type} className="rounded-xl border border-border p-4 space-y-2">
+                    <div key={type} className="rounded-xl p-4 space-y-2" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(139,92,246,0.18) 100%)', boxShadow: '0 4px 16px rgba(59,130,246,0.15)', border: '1px solid rgba(99,179,237,0.38)' }}>
                       <div className="flex items-center gap-2">
                         <div className="h-8 w-8 rounded-lg flex items-center justify-center" style={{ background: `${color}20` }}>
                           <Icon size={15} style={{ color }} />
                         </div>
                         <span className="text-sm font-medium text-foreground">{EVAL_TYPE_LABELS[type]}</span>
                       </div>
-                      <p className="text-3xl font-bold" style={{ color }}>{avg}<span className="text-sm text-muted-foreground">/10</span></p>
+                      <p className="text-2xl sm:text-3xl font-bold" style={{ color }}>{avg}<span className="text-sm text-muted-foreground">/10</span></p>
                       <p className="text-xs text-muted-foreground">{format(parseISO(ev.date), 'dd MMM yyyy', { locale: fr })}</p>
                     </div>
                   );
@@ -584,7 +609,7 @@ const SportifDashboard: React.FC = () => {
                   fill: CRITERIA_COLORS[k] ?? color,
                 }));
                 return (
-                  <div key={ev.id} className="bg-card border border-border rounded-xl p-6">
+                  <div key={ev.id} className="rounded-xl p-4 sm:p-6" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.35) 0%, rgba(59,130,246,0.22) 100%)', boxShadow: '0 8px 32px rgba(139,92,246,0.2), inset 0 1px 0 rgba(255,255,255,0.28)', border: '1px solid rgba(167,139,250,0.42)' }}>
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ background: `${color}20` }}>
@@ -655,7 +680,7 @@ const SportifDashboard: React.FC = () => {
         <div className="space-y-6">
           {/* Bar chart */}
           {attendanceChartData.length > 0 && (
-            <div className="bg-card border border-border rounded-xl p-6">
+            <div className="rounded-xl p-4 sm:p-6" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.32) 0%, rgba(139,92,246,0.2) 100%)', boxShadow: '0 8px 32px rgba(59,130,246,0.18), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(99,179,237,0.4)' }}>
               <h3 className="font-semibold text-foreground mb-4">Présences — 8 dernières séances</h3>
               <ResponsiveContainer width="100%" height={160}>
                 <BarChart data={attendanceChartData}>
@@ -674,7 +699,7 @@ const SportifDashboard: React.FC = () => {
           )}
 
           {/* List */}
-          <div className="bg-card border border-border rounded-xl divide-y divide-border">
+          <div className="rounded-xl divide-y" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(139,92,246,0.18) 100%)', boxShadow: '0 8px 32px rgba(59,130,246,0.15), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(99,179,237,0.38)' }}>
             {profile.attendances.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <Calendar size={40} className="mx-auto mb-3 opacity-30" />
@@ -684,7 +709,7 @@ const SportifDashboard: React.FC = () => {
               [...profile.attendances]
                 .sort((a, b) => new Date(b.training.date).getTime() - new Date(a.training.date).getTime())
                 .map(a => (
-                  <div key={a.id} className="flex items-center gap-4 px-5 py-3.5">
+                  <div key={a.id} className="flex items-center gap-3 px-4 sm:px-5 py-3">
                     {a.present
                       ? <CheckCircle size={18} className="text-green-400 shrink-0" />
                       : <XCircle size={18} className="text-red-400 shrink-0" />}
@@ -775,7 +800,7 @@ const SportifDashboard: React.FC = () => {
         return (
           <form onSubmit={handleSave} className="space-y-5">
             {/* Âge */}
-            <div className="bg-card border border-border rounded-xl p-5">
+            <div className="rounded-xl p-5" style={{ background: 'linear-gradient(135deg, rgba(99,179,237,0.38) 0%, rgba(59,130,246,0.25) 100%)', boxShadow: '0 8px 24px rgba(59,130,246,0.2), inset 0 1px 0 rgba(255,255,255,0.3)', border: '1px solid rgba(99,179,237,0.48)' }}>
               <div className="flex items-center gap-4">
                 <div className="h-14 w-14 rounded-xl bg-primary/10 border border-primary/20 flex flex-col items-center justify-center shrink-0">
                   <span className="text-2xl font-bold text-primary leading-none">{age}</span>
@@ -789,7 +814,7 @@ const SportifDashboard: React.FC = () => {
             </div>
 
             {/* Identité */}
-            <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+            <div className="rounded-xl p-5 space-y-4" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.32) 0%, rgba(109,40,217,0.2) 100%)', boxShadow: '0 8px 32px rgba(139,92,246,0.18), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(167,139,250,0.42)' }}>
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><UserCheck size={15} className="text-primary" /> Identité</h3>
               <div>
                 <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Genre</label>
@@ -808,14 +833,14 @@ const SportifDashboard: React.FC = () => {
             </div>
 
             {/* Coordonnées */}
-            <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+            <div className="rounded-xl p-5 space-y-4" style={{ background: 'linear-gradient(135deg, rgba(99,179,237,0.32) 0%, rgba(59,130,246,0.2) 100%)', boxShadow: '0 8px 32px rgba(59,130,246,0.18), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(99,179,237,0.42)' }}>
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Phone size={15} className="text-primary" /> Mes coordonnées</h3>
               {field('Email', 'email', <Mail size={12} />, 'email', 'mon@email.fr')}
               {field('Téléphone', 'phone', <Phone size={12} />, 'tel', '06 00 00 00 00')}
             </div>
 
             {/* Parents */}
-            <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+            <div className="rounded-xl p-5 space-y-4" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.3) 0%, rgba(5,150,105,0.18) 100%)', boxShadow: '0 8px 32px rgba(16,185,129,0.15), inset 0 1px 0 rgba(255,255,255,0.25)', border: '1px solid rgba(52,211,153,0.4)' }}>
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Phone size={15} className="text-primary" /> Contacts parentaux</h3>
               {field('Téléphone père', 'phoneFather', <Phone size={12} />, 'tel', '06 00 00 00 00')}
               {field('Téléphone mère', 'phoneMother', <Phone size={12} />, 'tel', '06 00 00 00 00')}

@@ -18,7 +18,11 @@ const getInitialClub = (): ClubSettings => {
     const stored = localStorage.getItem('club');
     if (stored) {
       const parsed = JSON.parse(stored);
-      return { id: parsed.id || '', clubName: parsed.clubName || parsed.name || 'G1Club', logoUrl: parsed.logoUrl };
+      return {
+        ...parsed,
+        id: parsed.id || '',
+        clubName: parsed.clubName || parsed.name || 'G1Club',
+      };
     }
   } catch {}
   return DEFAULT;

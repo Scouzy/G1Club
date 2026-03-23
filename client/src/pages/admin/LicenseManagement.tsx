@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import api from '../../lib/axios';
 import { Plus, X, Pencil, Trash2, Search, AlertTriangle, CheckCircle, Clock, XCircle, FileText, Wallet, RefreshCw, Download, Upload, LayoutList, LayoutGrid } from 'lucide-react';
 import LicencePaymentsPanel from '../../components/LicencePaymentsPanel';
@@ -303,7 +303,6 @@ const LicenseManagement: React.FC = () => {
             <div key={label} className="rounded-xl p-4 flex items-center gap-3" style={{
               background: `linear-gradient(135deg, ${bg} 0%, rgba(255,255,255,0.04) 100%)`,
               boxShadow: `0 4px 20px ${glow}, inset 0 1px 0 rgba(255,255,255,0.2)`,
-              backdropFilter: 'blur(12px)',
               border: `1px solid ${border}`,
             }}>
               <div className="h-9 w-9 rounded-full flex items-center justify-center shrink-0" style={{ background: bg, border: `1px solid ${border}` }}>
@@ -369,7 +368,6 @@ const LicenseManagement: React.FC = () => {
               <div key={l.id} className="rounded-xl p-4 flex flex-col gap-3 transition-all" style={{
                 background: 'linear-gradient(135deg, rgba(59,130,246,0.14) 0%, rgba(139,92,246,0.09) 100%)',
                 boxShadow: '0 4px 20px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.15)',
-                backdropFilter: 'blur(12px)',
                 border: '1px solid rgba(99,179,237,0.22)',
               }}>
                 <div className="flex items-center gap-3">
@@ -426,7 +424,6 @@ const LicenseManagement: React.FC = () => {
       <div className="rounded-xl overflow-hidden" style={{
         background: 'linear-gradient(135deg, rgba(59,130,246,0.12) 0%, rgba(139,92,246,0.08) 100%)',
         boxShadow: '0 4px 24px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.12)',
-        backdropFilter: 'blur(12px)',
         border: '1px solid rgba(99,179,237,0.2)',
       }}>
         <div className="overflow-x-auto -mx-0">

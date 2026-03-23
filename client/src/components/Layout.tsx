@@ -13,11 +13,11 @@ const LayoutInner: React.FC<LayoutProps> = ({ children }) => {
     <div className="min-h-screen bg-background text-foreground flex">
       <Sidebar />
       <main
-        className={`flex-1 transition-all duration-300 ${
+        className={`flex-1 min-w-0 overflow-x-hidden transition-all duration-300 ${
           collapsed ? 'md:ml-16' : 'md:ml-64'
         }`}
       >
-        <div className="w-full p-3 sm:p-4 md:p-8 pt-16 md:pt-8 max-w-full overflow-x-hidden">
+        <div className="w-full p-3 sm:p-4 md:p-8 pt-16 md:pt-8 max-w-full">
           {children}
         </div>
       </main>

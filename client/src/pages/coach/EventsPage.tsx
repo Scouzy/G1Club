@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Category, getCategories } from '../../services/categoryService';
 import { Training, getTrainings, createTraining, updateTraining, deleteTraining } from '../../services/trainingService';
@@ -156,7 +156,7 @@ const EventsPage: React.FC = () => {
   if (view === 'categories') {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">Événements</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Événements</h1>
         <p className="text-sm text-muted-foreground">Sélectionnez une catégorie pour gérer ses créneaux d'entraînement et ses événements.</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {categories.map(cat => {
@@ -175,7 +175,6 @@ const EventsPage: React.FC = () => {
                 style={{
                   background: 'linear-gradient(135deg, rgba(99,179,237,0.12) 0%, rgba(139,92,246,0.08) 100%)',
                   boxShadow: '0 4px 16px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.15)',
-                  backdropFilter: 'blur(12px)',
                   border: `2px solid ${editable && cat.color ? cat.color + '55' : 'rgba(99,179,237,0.2)'}`,
                 }}
               >
@@ -243,7 +242,7 @@ const EventsPage: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-border overflow-x-auto">
+      <div className="flex gap-1 border-b border-border overflow-x-auto scrollbar-none" style={{ scrollbarWidth: 'none' }}>
         <button
           onClick={() => setActiveTab('seances')}
           className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'seances' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
@@ -319,7 +318,7 @@ const EventsPage: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {schedules.map(s => (
-                <div key={s.id} className="rounded-xl p-4 flex items-center justify-between transition-all" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.15) 0%, rgba(139,92,246,0.08) 100%)', boxShadow: '0 4px 16px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', border: '1px solid rgba(99,179,237,0.25)' }}>
+                <div key={s.id} className="rounded-xl p-4 flex items-center justify-between transition-all" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.15) 0%, rgba(139,92,246,0.08) 100%)', boxShadow: '0 4px 16px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.15)', border: '1px solid rgba(99,179,237,0.25)' }}>
                   <div>
                     <p className="font-semibold text-foreground">{DAY_NAMES[s.dayOfWeek]}</p>
                     <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
@@ -553,7 +552,7 @@ const EntrainementsTab: React.FC<{
     const dateStr = occ.date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
 
     return (
-      <div key={key} className={`flex items-center justify-between rounded-xl px-4 py-3 transition-all ${dimmed ? 'opacity-60' : ''}`} style={{ background: training ? 'linear-gradient(135deg, rgba(99,179,237,0.2) 0%, rgba(59,130,246,0.12) 100%)' : 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(139,92,246,0.07) 100%)', boxShadow: '0 4px 16px rgba(59,130,246,0.08), inset 0 1px 0 rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)', border: training ? '1px solid rgba(99,179,237,0.35)' : '1px solid rgba(99,179,237,0.18)' }}>
+      <div key={key} className={`flex items-center justify-between rounded-xl px-4 py-3 transition-all ${dimmed ? 'opacity-60' : ''}`} style={{ background: training ? 'linear-gradient(135deg, rgba(99,179,237,0.2) 0%, rgba(59,130,246,0.12) 100%)' : 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(139,92,246,0.07) 100%)', boxShadow: '0 4px 16px rgba(59,130,246,0.08), inset 0 1px 0 rgba(255,255,255,0.12)', border: training ? '1px solid rgba(99,179,237,0.35)' : '1px solid rgba(99,179,237,0.18)' }}>
         <div className="flex items-center gap-4">
           <div className="text-center w-12">
             <p className="text-xs text-muted-foreground">{dayName}</p>
@@ -708,7 +707,7 @@ const EventCard: React.FC<{
 
   if (editing) {
     return (
-      <form onSubmit={handleSave} className="rounded-xl p-5 space-y-4" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(59,130,246,0.08) 100%)', boxShadow: '0 4px 20px rgba(139,92,246,0.1), inset 0 1px 0 rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', border: '1px solid rgba(167,139,250,0.35)' }}>
+      <form onSubmit={handleSave} className="rounded-xl p-5 space-y-4" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(59,130,246,0.08) 100%)', boxShadow: '0 4px 20px rgba(139,92,246,0.1), inset 0 1px 0 rgba(255,255,255,0.15)', border: '1px solid rgba(167,139,250,0.35)' }}>
         <h3 className="font-semibold text-foreground text-sm">Modifier l'événement</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           <div>
@@ -773,7 +772,7 @@ const EventCard: React.FC<{
   }
 
   return (
-    <div className="rounded-xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(59,130,246,0.08) 100%)', boxShadow: '0 4px 20px rgba(139,92,246,0.1), inset 0 1px 0 rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', border: '1px solid rgba(167,139,250,0.25)' }}>
+    <div className="rounded-xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(59,130,246,0.08) 100%)', boxShadow: '0 4px 20px rgba(139,92,246,0.1), inset 0 1px 0 rgba(255,255,255,0.15)', border: '1px solid rgba(167,139,250,0.25)' }}>
       <div className="flex-1">
         <div className="flex items-center gap-2 mb-2">
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold

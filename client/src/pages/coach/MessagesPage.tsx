@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import {
   getContacts, getMessages, sendMessage,
@@ -237,7 +237,7 @@ const MessagesPage: React.FC = () => {
 
   return (
     <>
-    <div className="flex h-[calc(100vh-8rem)] bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+    <div className="flex h-[calc(100vh-8rem)] rounded-xl overflow-hidden" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.08) 0%, rgba(139,92,246,0.06) 100%)', boxShadow: '0 8px 32px rgba(59,130,246,0.12), inset 0 1px 0 rgba(255,255,255,0.1)', border: '1px solid rgba(99,179,237,0.2)' }}>
 
       {/* ── SIDEBAR CONTACTS ── */}
       <div className={`w-72 shrink-0 border-r border-border flex flex-col ${activeThread ? 'hidden md:flex' : 'flex'}`}>

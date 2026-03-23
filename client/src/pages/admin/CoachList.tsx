@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import { getCoaches, createCoach, deleteCoach, updateCoachProfile, updateCoachCategories, Coach, CreateCoachData } from '../../services/coachService';
 import { getCategories, Category } from '../../services/categoryService';
 import { User, Phone, MapPin, Star, Plus, Trash2, X, Pencil, Camera, Layers, Download, Upload, CheckCircle, AlertCircle } from 'lucide-react';
@@ -195,7 +195,7 @@ const CoachList: React.FC = () => {
       <ClubBanner />
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold text-foreground">Coachs</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Coachs</h1>
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm text-muted-foreground">{coaches.length} entraîneur{coaches.length > 1 ? 's' : ''}</span>
           <button
@@ -432,10 +432,9 @@ const CoachList: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {coaches.map((coach) => (
             <div key={coach.id} className="rounded-2xl p-5 transition-all relative" style={{
-              background: 'linear-gradient(135deg, rgba(99,179,237,0.12) 0%, rgba(139,92,246,0.08) 100%)',
-              boxShadow: '0 4px 24px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.15)',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(99,179,237,0.2)',
+              background: 'linear-gradient(135deg, rgba(59,130,246,0.32) 0%, rgba(139,92,246,0.2) 60%, rgba(99,179,237,0.25) 100%)',
+              boxShadow: '0 8px 32px rgba(59,130,246,0.2), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.1)',
+              border: '1px solid rgba(99,179,237,0.38)',
             }}>
               {/* Action buttons */}
               <div className="absolute top-3 right-3 flex items-center gap-1">
@@ -465,7 +464,7 @@ const CoachList: React.FC = () => {
                 )}
               </div>
 
-              <div className="flex items-center gap-4 mb-4 pr-16">
+              <div className="flex items-center gap-3 mb-4 pr-14 min-w-0">
                 <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden text-primary font-bold text-lg shrink-0">
                   {coach.photoUrl ? (
                     <img src={coach.photoUrl} alt={coach.user?.name} className="h-full w-full object-cover" />
