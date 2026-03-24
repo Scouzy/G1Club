@@ -4,7 +4,7 @@ import { Category, getCategories } from '../../services/categoryService';
 import { Training, getTrainings, createTraining, updateTraining, deleteTraining } from '../../services/trainingService';
 import { TrainingSchedule, DAY_NAMES, getSchedulesByCategory, createSchedule, deleteSchedule } from '../../services/scheduleService';
 import { useCoachCategories } from '../../hooks/useCoachCategories';
-import { Plus, Trash2, Pencil, Calendar, Clock, Layers, ChevronLeft, Users, Lock } from 'lucide-react';
+import { Plus, Trash2, Pencil, Calendar, Clock, Layers, ChevronLeft, Users, Lock, Dumbbell, Trophy } from 'lucide-react';
 
 type PageView = 'categories' | 'detail';
 type DetailTab = 'seances' | 'entrainements' | 'evenements';
@@ -242,25 +242,26 @@ const EventsPage: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-border overflow-x-auto scrollbar-none" style={{ scrollbarWidth: 'none' }}>
-        <button
-          onClick={() => setActiveTab('seances')}
-          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'seances' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-        >
-          <Calendar size={14} className="inline mr-1.5" />Créneaux
-        </button>
-        <button
-          onClick={() => setActiveTab('entrainements')}
-          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'entrainements' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-        >
-          ⚽ Entraînements ({catEntrainements.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('evenements')}
-          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'evenements' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-        >
-          🏆 Événements ({catEvents.length})
-        </button>
+      <div className="flex gap-1 bg-muted/40 p-1 rounded-xl w-full">
+        {([
+          { key: 'seances',       label: 'Créneaux',                          icon: Calendar },
+          { key: 'entrainements', label: `Entraînements (${catEntrainements.length})`, icon: Dumbbell },
+          { key: 'evenements',    label: `Événements (${catEvents.length})`,  icon: Trophy },
+        ] as const).map(({ key, label, icon: Icon }) => (
+          <button
+            key={key}
+            onClick={() => setActiveTab(key)}
+            title={label}
+            className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs font-medium transition-all ${
+              activeTab === key
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Icon size={15} className="shrink-0" />
+            <span className="hidden sm:inline whitespace-nowrap">{label}</span>
+          </button>
+        ))}
       </div>
 
       {/* ── SÉANCES TAB ── */}

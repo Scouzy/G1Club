@@ -151,23 +151,25 @@ const SportifEvents: React.FC = () => {
       )}
 
       {/* Onglets principaux */}
-      <div className="flex gap-1 bg-muted/40 p-1 rounded-xl overflow-x-auto">
-        <button
-          onClick={() => setMainTab('schedules')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-            mainTab === 'schedules' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <Repeat size={14} /> Créneaux hebdo ({schedules.length})
-        </button>
-        <button
-          onClick={() => setMainTab('events')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-            mainTab === 'events' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <Calendar size={14} /> Événements ({trainings.length})
-        </button>
+      <div className="flex gap-1 bg-muted/40 p-1 rounded-xl w-full">
+        {([
+          { key: 'schedules', label: `Créneaux (${schedules.length})`, icon: Repeat },
+          { key: 'events',    label: `Événements (${trainings.length})`, icon: Calendar },
+        ] as const).map(({ key, label, icon: Icon }) => (
+          <button
+            key={key}
+            onClick={() => setMainTab(key)}
+            title={label}
+            className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs font-medium transition-all ${
+              mainTab === key
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Icon size={15} className="shrink-0" />
+            <span className="hidden sm:inline whitespace-nowrap">{label}</span>
+          </button>
+        ))}
       </div>
 
       {/* ===== CRÉNEAUX HEBDOMADAIRES ===== */}
@@ -215,7 +217,7 @@ const SportifEvents: React.FC = () => {
       {mainTab === 'events' && (
       <div className="space-y-4">
       {/* Filtres événements */}
-      <div className="flex gap-1 bg-muted/40 p-1 rounded-xl overflow-x-auto">
+      <div className="flex gap-1 bg-muted/40 p-1 rounded-xl overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {([
           { id: 'upcoming', label: `À venir (${upcomingCount})` },
           { id: 'past',     label: 'Passés' },

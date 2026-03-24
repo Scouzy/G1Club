@@ -329,19 +329,20 @@ const SportifDashboard: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-muted/40 p-1 rounded-xl w-full overflow-x-auto scrollbar-none">
+      <div className="flex gap-1 bg-muted/40 p-1 rounded-xl w-full">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
+            title={tab.label}
+            className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs font-medium transition-all ${
               activeTab === tab.id
                 ? 'bg-card text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            <tab.icon size={15} />
-            {tab.label}
+            <tab.icon size={15} className="shrink-0" />
+            <span className="hidden sm:inline whitespace-nowrap">{tab.label}</span>
           </button>
         ))}
       </div>

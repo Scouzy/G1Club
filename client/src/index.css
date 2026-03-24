@@ -104,3 +104,10 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Hide scrollbars visually but keep scroll functional */
+.overflow-x-auto::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar {
+  height: 0;
+  width: 0;
+}

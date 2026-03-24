@@ -355,23 +355,25 @@ const SportifList: React.FC = () => {
 
       {/* Tabs — shown only when a category is selected */}
       {selectedCategoryObj && (
-        <div className="flex gap-1 border-b border-border overflow-x-auto scrollbar-none" style={{ scrollbarWidth: 'none' }}>
-          <button
-            onClick={() => setCategoryTab('sportifs')}
-            className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              categoryTab === 'sportifs' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <User size={14} /> Sportifs ({filteredSportifs.length})
-          </button>
-          <button
-            onClick={() => setCategoryTab('equipes')}
-            className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              categoryTab === 'equipes' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Users size={14} /> Équipes ({teams.length})
-          </button>
+        <div className="flex gap-1 bg-muted/40 p-1 rounded-xl w-full">
+          {([
+            { key: 'sportifs', label: `Sportifs (${filteredSportifs.length})`, icon: User },
+            { key: 'equipes',  label: `Équipes (${teams.length})`,              icon: Users },
+          ] as const).map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              onClick={() => setCategoryTab(key)}
+              title={label}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs font-medium transition-all ${
+                categoryTab === key
+                  ? 'bg-card text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Icon size={15} className="shrink-0" />
+              <span className="hidden sm:inline whitespace-nowrap">{label}</span>
+            </button>
+          ))}
         </div>
       )}
 

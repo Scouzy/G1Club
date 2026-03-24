@@ -4,7 +4,7 @@ import { Sportif, getSportifById } from '../../services/sportifService';
 import { Annotation, getAnnotations, createAnnotation, deleteAnnotation } from '../../services/annotationService';
 import { Evaluation, getEvaluations, createEvaluation, updateEvaluation, deleteEvaluation } from '../../services/evaluationService';
 import { Team, getTeamsByCategory, assignSportifToTeam } from '../../services/teamService';
-import { User, Calendar, Ruler, Weight, Plus, Trash2, CheckCircle, XCircle, Save, TrendingUp, Shield, Camera, Edit2, Phone, Mail, MapPin, UserCheck, Activity, Star } from 'lucide-react';
+import { User, Calendar, Ruler, Weight, Plus, Trash2, CheckCircle, XCircle, Save, TrendingUp, Shield, Camera, Edit2, Phone, Mail, MapPin, UserCheck, Activity, Star, Zap } from 'lucide-react';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import api from '../../lib/axios';
 import { useRefresh } from '../../context/RefreshContext';
@@ -393,26 +393,28 @@ const SportifDetails: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-border overflow-x-auto scrollbar-none" style={{ scrollbarWidth: 'none' }}>
-        <nav className="-mb-px flex gap-2 sm:gap-4 min-w-max">
-          {([
-            { key: 'overview',    label: 'Vue d\'ensemble' },
-            { key: 'presences',   label: `Présences (${totalSessions})` },
-            { key: 'annotations', label: `Annotations (${annotations.length})` },
-            { key: 'evaluations', label: `Évaluations (${evaluations.length})` },
-            { key: 'infos',       label: 'Infos personnelles' },
-          ] as const).map(tab => (
-            <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-              className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === tab.key
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </nav>
+      <div className="flex gap-1 bg-muted/40 p-1 rounded-xl w-full">
+        {([
+          { key: 'overview',    label: 'Vue d\'ensemble', icon: TrendingUp },
+          { key: 'presences',   label: `Présences (${totalSessions})`, icon: Calendar },
+          { key: 'annotations', label: `Annotations (${annotations.length})`, icon: Zap },
+          { key: 'evaluations', label: `Évaluations (${evaluations.length})`, icon: Star },
+          { key: 'infos',       label: 'Infos personnelles', icon: User },
+        ] as const).map(({ key, label, icon: Icon }) => (
+          <button
+            key={key}
+            onClick={() => setActiveTab(key)}
+            title={label}
+            className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs font-medium transition-all ${
+              activeTab === key
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Icon size={15} className="shrink-0" />
+            <span className="hidden sm:inline whitespace-nowrap">{label}</span>
+          </button>
+        ))}
       </div>
 
       {/* Content */}
