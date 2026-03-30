@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Coach, getCoachProfile, getCurrentCoachProfile, updateCoachProfile, updateCoachCategories } from '../../services/coachService';
 import { Category, getCategories } from '../../services/categoryService';
 import { useAuth } from '../../hooks/useAuth';
-import { User, Mail, Phone, MapPin, Award, Book, Edit, Save, X, Layers, Plus, Camera } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Award, BookOpen, Edit, Save, X, Layers, Plus, Camera, Zap } from 'lucide-react';
 
 const CoachProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -13,6 +13,8 @@ const CoachProfile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [activeTab, setActiveTab] = useState<'profil' | 'qualifications' | 'bio'>('profil');
 
   // Categories management
   const [editingCategories, setEditingCategories] = useState(false);
@@ -134,6 +136,12 @@ const CoachProfile: React.FC = () => {
   const canEdit = isOwnProfile || user?.role === 'ADMIN';
   const isAdmin = user?.role === 'ADMIN';
 
+  const tabs = [
+    { key: 'profil',          label: 'Profil',          icon: User },
+    { key: 'qualifications',  label: 'Qualifications',  icon: Award },
+    { key: 'bio',             label: 'Biographie',      icon: BookOpen },
+  ] as const;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -146,6 +154,25 @@ const CoachProfile: React.FC = () => {
             <Edit size={18} /> Modifier
           </button>
         )}
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 bg-muted/40 p-1 rounded-xl w-full">
+        {tabs.map(({ key, label, icon: Icon }) => (
+          <button
+            key={key}
+            onClick={() => setActiveTab(key)}
+            title={label}
+            className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs font-medium transition-all ${
+              activeTab === key
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Icon size={15} className="shrink-0" />
+            <span className="hidden sm:inline whitespace-nowrap">{label}</span>
+          </button>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
@@ -281,136 +308,88 @@ const CoachProfile: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column: Detailed Info / Edit Form */}
-        <div className="md:col-span-2 p-4 sm:p-6 rounded-xl" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(139,92,246,0.18) 60%, rgba(99,179,237,0.25) 100%)', boxShadow: '0 8px 32px rgba(59,130,246,0.2), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.1)', border: '1px solid rgba(99,179,237,0.35)' }}>
-          {isEditing ? (
-            <form onSubmit={handleUpdate} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">Téléphone</label>
-                  <input
-                    type="text"
-                    className="w-full rounded-md border-input bg-background text-foreground border px-3 py-2"
-                    value={formData.phone}
-                    onChange={e => setFormData({...formData, phone: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">Adresse</label>
-                  <input
-                    type="text"
-                    className="w-full rounded-md border-input bg-background text-foreground border px-3 py-2"
-                    value={formData.address}
-                    onChange={e => setFormData({...formData, address: e.target.value})}
-                  />
-                </div>
-              </div>
+        {/* Right column — content tabs */}
+        {activeTab !== 'profil' && (
+          <div className="md:col-span-2 p-4 sm:p-6 rounded-xl" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(139,92,246,0.18) 60%, rgba(99,179,237,0.25) 100%)', boxShadow: '0 8px 32px rgba(59,130,246,0.2), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.1)', border: '1px solid rgba(99,179,237,0.35)' }}>
 
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Qualifications / Diplômes</label>
-                <textarea
-                  className="w-full rounded-md border-input bg-background text-foreground border px-3 py-2"
-                  rows={3}
-                  value={formData.qualifications}
-                  onChange={e => setFormData({...formData, qualifications: e.target.value})}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Expérience</label>
-                <textarea
-                  className="w-full rounded-md border-input bg-background text-foreground border px-3 py-2"
-                  rows={3}
-                  value={formData.experience}
-                  onChange={e => setFormData({...formData, experience: e.target.value})}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Spécialités</label>
-                <input
-                  type="text"
-                  className="w-full rounded-md border-input bg-background text-foreground border px-3 py-2"
-                  value={formData.specialties}
-                  onChange={e => setFormData({...formData, specialties: e.target.value})}
-                  placeholder="Ex: Préparation physique, Gardiens..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Biographie</label>
-                <textarea
-                  className="w-full rounded-md border-input bg-background text-foreground border px-3 py-2"
-                  rows={4}
-                  value={formData.bio}
-                  onChange={e => setFormData({...formData, bio: e.target.value})}
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(false)}
-                  className="flex items-center gap-2 px-4 py-2 border border-input rounded-md text-foreground hover:bg-muted"
-                  disabled={isSubmitting}
-                >
-                  <X size={18} />
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
-                  disabled={isSubmitting}
-                >
-                  <Save size={18} />
-                  {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
-                </button>
-              </div>
-            </form>
-          ) : (
-            <div className="space-y-8">
-              <div>
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-3">
-                  <Award className="text-primary" size={20} />
-                  Qualifications
-                </h3>
-                <p className="text-muted-foreground whitespace-pre-wrap">
-                  {coach.qualifications || "Aucune qualification renseignée."}
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-3">
-                  <Book className="text-primary" size={20} />
-                  Expérience
-                </h3>
-                <p className="text-muted-foreground whitespace-pre-wrap">
-                  {coach.experience || "Aucune expérience renseignée."}
-                </p>
-              </div>
-
-              {coach.specialties && (
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-3">Spécialités</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {coach.specialties.split(',').map((spec, i) => (
-                      <span key={i} className="px-3 py-1 bg-secondary text-secondary-foreground rounded-full text-sm">
-                        {spec.trim()}
-                      </span>
-                    ))}
+            {/* ===== QUALIFICATIONS TAB ===== */}
+            {activeTab === 'qualifications' && (
+              isEditing ? (
+                <form onSubmit={handleUpdate} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">Téléphone</label>
+                      <input type="text" className="w-full rounded-md border-input bg-background text-foreground border px-3 py-2" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">Adresse</label>
+                      <input type="text" className="w-full rounded-md border-input bg-background text-foreground border px-3 py-2" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
+                    </div>
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">Qualifications / Diplômes</label>
+                    <textarea className="w-full rounded-md border-input bg-background text-foreground border px-3 py-2" rows={3} value={formData.qualifications} onChange={e => setFormData({...formData, qualifications: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">Expérience</label>
+                    <textarea className="w-full rounded-md border-input bg-background text-foreground border px-3 py-2" rows={3} value={formData.experience} onChange={e => setFormData({...formData, experience: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">Spécialités</label>
+                    <input type="text" className="w-full rounded-md border-input bg-background text-foreground border px-3 py-2" value={formData.specialties} onChange={e => setFormData({...formData, specialties: e.target.value})} placeholder="Ex: Préparation physique, Gardiens..." />
+                  </div>
+                  <div className="flex justify-end gap-3 pt-4">
+                    <button type="button" onClick={() => setIsEditing(false)} className="flex items-center gap-2 px-4 py-2 border border-input rounded-md text-foreground hover:bg-muted" disabled={isSubmitting}><X size={18} /> Annuler</button>
+                    <button type="submit" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50" disabled={isSubmitting}><Save size={18} /> {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}</button>
+                  </div>
+                </form>
+              ) : (
+                <div className="space-y-8">
+                  <div>
+                    <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-3"><Award className="text-primary" size={20} /> Qualifications</h3>
+                    <p className="text-muted-foreground whitespace-pre-wrap">{coach.qualifications || 'Aucune qualification renseignée.'}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-3"><Zap className="text-primary" size={20} /> Expérience</h3>
+                    <p className="text-muted-foreground whitespace-pre-wrap">{coach.experience || 'Aucune expérience renseignée.'}</p>
+                  </div>
+                  {coach.specialties && (
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground mb-3">Spécialités</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {coach.specialties.split(',').map((spec, i) => (
+                          <span key={i} className="px-3 py-1 bg-secondary text-secondary-foreground rounded-full text-sm">{spec.trim()}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              )
+            )}
 
-              <div>
-                <h3 className="text-lg font-semibold text-foreground mb-3">Biographie</h3>
-                <p className="text-muted-foreground whitespace-pre-wrap">
-                  {coach.bio || "Aucune biographie disponible."}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
+            {/* ===== BIO TAB ===== */}
+            {activeTab === 'bio' && (
+              isEditing ? (
+                <form onSubmit={handleUpdate} className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">Biographie</label>
+                    <textarea className="w-full rounded-md border-input bg-background text-foreground border px-3 py-2" rows={6} value={formData.bio} onChange={e => setFormData({...formData, bio: e.target.value})} />
+                  </div>
+                  <div className="flex justify-end gap-3 pt-4">
+                    <button type="button" onClick={() => setIsEditing(false)} className="flex items-center gap-2 px-4 py-2 border border-input rounded-md text-foreground hover:bg-muted" disabled={isSubmitting}><X size={18} /> Annuler</button>
+                    <button type="submit" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50" disabled={isSubmitting}><Save size={18} /> {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}</button>
+                  </div>
+                </form>
+              ) : (
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-3"><BookOpen className="text-primary" size={20} /> Biographie</h3>
+                  <p className="text-muted-foreground whitespace-pre-wrap">{coach.bio || 'Aucune biographie disponible.'}</p>
+                </div>
+              )
+            )}
+
+          </div>
+        )}
       </div>
     </div>
   );
