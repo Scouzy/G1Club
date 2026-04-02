@@ -231,8 +231,11 @@ const Sidebar: React.FC = () => {
       {/* Mobile toggle — visible only when sidebar is closed */}
       {!mobileOpen && (
         <button
-          className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-md shadow-lg border border-white/10"
-          style={{ background: 'hsl(222, 47%, 9%)' }}
+          className="md:hidden fixed left-4 z-50 p-2 rounded-md shadow-lg border border-white/10"
+          style={{
+            background: 'hsl(222, 47%, 9%)',
+            top: 'calc(env(safe-area-inset-top, 0px) + 12px)',
+          }}
           onClick={() => setMobileOpen(true)}
         >
           <Menu size={22} className="text-white" />
@@ -242,7 +245,7 @@ const Sidebar: React.FC = () => {
       {/* Mobile overlay — tap to close */}
       {mobileOpen && (
         <div
-          className="md:hidden fixed inset-0 z-30 bg-black/50"
+          className="md:hidden fixed inset-0 z-30 bg-black/60 backdrop-blur-sm"
           onClick={closeMobile}
         />
       )}
@@ -250,16 +253,21 @@ const Sidebar: React.FC = () => {
       {/* Sidebar */}
       <div
         className={`
-          fixed top-0 left-0 h-full z-40 flex flex-col
+          fixed top-0 left-0 z-40 flex flex-col
           border-r border-white/10
-          ${sidebarWidth} transition-all duration-300 ease-in-out
+          ${sidebarWidth} transition-transform duration-300 ease-in-out
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0
         `}
-        style={{ background: 'hsl(222, 47%, 9%)' }}
+        style={{
+          background: 'hsl(222, 47%, 9%)',
+          height: '100dvh',
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        }}
       >
         {/* Logo + collapse toggle */}
         <div className="border-b border-white/10 shrink-0 relative">
-          <div className="h-16 flex items-center px-4">
+          <div className="h-14 flex items-center px-4">
             <div className="h-9 w-9 rounded-lg shrink-0 overflow-hidden flex items-center justify-center" style={{ background: '#1e2d45' }}>
               <img
                 src={club.logoUrl || '/logo-g1club.png'}
@@ -561,13 +569,6 @@ const Sidebar: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile overlay */}
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 bg-black/60 z-30 md:hidden"
-          onClick={closeMobile}
-        />
-      )}
     </>
   );
 };

@@ -10,14 +10,15 @@ interface LayoutProps {
 const LayoutInner: React.FC<LayoutProps> = ({ children }) => {
   const { collapsed } = useSidebar();
   return (
-    <div className="min-h-screen bg-background text-foreground flex">
+    <div className="h-[100dvh] bg-background text-foreground flex overflow-hidden">
       <Sidebar />
       <main
-        className={`flex-1 min-w-0 overflow-x-hidden transition-all duration-300 ${
+        className={`flex-1 min-w-0 overflow-x-hidden overflow-y-auto transition-all duration-300 ${
           collapsed ? 'md:ml-16' : 'md:ml-64'
         }`}
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <div className="w-full p-3 sm:p-4 md:p-8 pt-16 md:pt-8 max-w-full">
+        <div className="w-full p-3 sm:p-4 md:p-8 pt-14 md:pt-8 max-w-full">
           {children}
         </div>
       </main>
